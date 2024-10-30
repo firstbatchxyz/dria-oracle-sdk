@@ -4,9 +4,11 @@ import {
   Chain,
   erc20Abi,
   getContract,
-  Hex,
+  type Hex,
+  maxUint256,
   parseAbi,
   parseEventLogs,
+  type Prettify,
   PublicClient,
   toHex,
   Transport,
@@ -14,16 +16,8 @@ import {
 } from "viem";
 import { DecentralizedStorage } from "../data";
 import coordinatorAbi from "./abi";
-import { contractBytesToString, stringToContractBytes } from "../utilities";
-import type {
-  Models,
-  RequestModels,
-  TaskParameters,
-  TaskRequest,
-  TaskResponse,
-  TaskResponseProcessed,
-  TaskStatus,
-} from "./types";
+import { contractBytesToString, logger, stringToContractBytes } from "../utilities";
+import { RequestModels, TaskParameters, TaskRequest, TaskResponse, TaskResponseProcessed, TaskStatus } from "./types";
 
 export class Oracle<T extends Transport, C extends Chain> {
   public coordinator?: Oracle.Coordinator;
@@ -43,6 +37,10 @@ export class Oracle<T extends Transport, C extends Chain> {
     readonly storage?: DecentralizedStorage<string>
   ) {}
 
+  /**
+   * Initialize the oracle client by setting up contract instances.
+   * @param coordinatorAddress coordinator contract address
+   */
   async init(coordinatorAddress: Address) {
     this.coordinator = this.Coordinator(coordinatorAddress);
 
@@ -89,14 +87,21 @@ export class Oracle<T extends Transport, C extends Chain> {
     });
   }
 
-  async write(
+  /**
+   *
+   * @param input input string
+   * @param models requested models
+   * @param opts optional arguments
+   * @returns task id
+   */
+  async request(
     input: string,
     models: RequestModels,
     opts: {
       taskParameters?: Partial<TaskParameters>;
       protocol?: string;
     } = {}
-  ) {
+  ): Promise<bigint> {
     if (this.coordinator === undefined) {
       throw new Error("Coordinator not initialized.");
     }
@@ -110,6 +115,7 @@ export class Oracle<T extends Transport, C extends Chain> {
       [protocolBytes, inputBytes, modelBytes, { ...this.taskParameters, ...opts.taskParameters }],
       { chain: this.client.wallet.chain, account: this.client.wallet.account }
     );
+    logger.debug(`Request transaction hash: ${txHash}`);
 
     // wait for receipt & parse event
     const receipt = await this.client.public.waitForTransactionReceipt({ hash: txHash });
@@ -118,9 +124,24 @@ export class Oracle<T extends Transport, C extends Chain> {
       logs: receipt.logs,
       eventName: "Request",
     });
-    const taskId = logs[0].args.taskId;
+    if (logs.length === 0) {
+      logger.error(`Could not find request event in: ${logs}`);
+      throw new Error("Request event not found in logs.");
+    }
 
+    const taskId = logs[0].args.taskId;
     return taskId;
+  }
+
+  /**
+   * Alias for `readResponse` and `processResponse`.
+   *
+   * @param taskId task id
+   * @returns processed task response
+   */
+  async read(taskId: bigint): Promise<Prettify<TaskResponseProcessed>> {
+    const response = await this.readResponse(taskId);
+    return this.processResponse(response);
   }
 
   /**
@@ -128,7 +149,7 @@ export class Oracle<T extends Transport, C extends Chain> {
    * @param taskId task id
    * @returns task response
    */
-  async readRequest(taskId: bigint): Promise<TaskRequest> {
+  async readRequest(taskId: bigint): Promise<Prettify<TaskRequest>> {
     if (this.coordinator === undefined) {
       throw new Error("Coordinator not initialized.");
     }
@@ -155,7 +176,7 @@ export class Oracle<T extends Transport, C extends Chain> {
    * @param idx index of the response, if not provided, the best & completed response is returned
    * @returns task response
    */
-  async readResponse(taskId: bigint, idx?: bigint): Promise<TaskResponse> {
+  async readResponse(taskId: bigint, idx?: bigint): Promise<Prettify<TaskResponse>> {
     if (this.coordinator === undefined) {
       throw new Error("Coordinator not initialized.");
     }
@@ -180,7 +201,7 @@ export class Oracle<T extends Transport, C extends Chain> {
    * @param response existing response object
    * @returns response object with processed `output` and `metadata`
    */
-  async processResponse(response: TaskResponse): Promise<TaskResponseProcessed> {
+  async processResponse(response: TaskResponse): Promise<Prettify<TaskResponseProcessed>> {
     return {
       ...response,
       output: await contractBytesToString(response.output, this.storage),
@@ -188,7 +209,60 @@ export class Oracle<T extends Transport, C extends Chain> {
     };
   }
 
-  // TODO: add wait for oracle response function
+  /**
+   * Waits for a task to be completed.
+   * @param taskId task id
+   */
+  async wait(taskId: bigint): Promise<Hex> {
+    if (this.coordinator === undefined) {
+      throw new Error("Coordinator not initialized.");
+    }
+
+    return new Promise<Hex>((resolve, reject) => {
+      const unwatch = this.coordinator!.watchEvent.StatusUpdate(
+        {
+          taskId,
+          protocol: undefined,
+        },
+        {
+          onLogs: (logs) => {
+            const status = logs[0].args.statusAfter;
+            if (status === TaskStatus.Completed) {
+              logger.debug(`Task ${taskId} completed.`);
+              unwatch();
+              resolve(logs[0].transactionHash);
+            }
+          },
+          onError: (err) => reject(err),
+        }
+      );
+    });
+  }
+
+  /** Returns the allowance of the client for the coordinator. */
+  async allowance(): Promise<bigint> {
+    if (this.token === undefined) {
+      throw new Error("Token not initialized.");
+    }
+
+    return this.token.read.allowance([this.client.wallet.account.address, this.coordinator!.address]);
+  }
+
+  /**
+   * Approves the coordinator to spend the client's tokens.
+   * @param amount amount to approve, defaults to max uint256 (infinite)
+   */
+  async approve(amount?: bigint): Promise<Hex> {
+    if (this.token === undefined) {
+      throw new Error("Token not initialized.");
+    }
+    amount = amount ?? maxUint256;
+
+    return this.token.write.approve([this.coordinator!.address, amount], {
+      chain: this.client.wallet.chain,
+      account: this.client.wallet.account,
+    });
+  }
 }
 
 export namespace Oracle {

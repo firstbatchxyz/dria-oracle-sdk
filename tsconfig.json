@@ -24,7 +24,10 @@
     "strictNullChecks": true,
 
     /// Also needed for Viem
-    "strict": true
+    "strict": true,
+
+    /// Allow bigints
+    "target": "ES2020"
   },
   "exclude": ["node_modules", "dist"]
 }
