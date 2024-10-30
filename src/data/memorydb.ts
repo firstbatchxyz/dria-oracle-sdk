@@ -1,5 +1,5 @@
-import type { DecentralizedStorage } from './';
-import { randomBytes } from 'crypto';
+import type { DecentralizedStorage } from "./";
+import { randomBytes } from "crypto";
 
 /**
  * A _mock_ decentralized storage, basically a key-value store in memory.
@@ -22,12 +22,12 @@ export class MemoryStorage<T = unknown> implements DecentralizedStorage<T, strin
   }
 
   async put(value: T): Promise<string> {
-    const key = randomBytes(32).toString('hex');
+    const key = randomBytes(32).toString("hex");
     this.db[key] = value;
     return key;
   }
 
   describe(): string {
-    return 'MemoryStorage';
+    return "MemoryStorage";
   }
 }

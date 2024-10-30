@@ -5,27 +5,15 @@ import { envAddress, envDefined, envNumber, envHex } from "./environment";
 import type { PathLike } from "fs";
 
 const Environment = ["development", "staging", "production", "test"] as const;
-const environment =
-  Environment.find((s) => s == process.env.NODE_ENV) ?? "development";
+const environment = Environment.find((s) => s == process.env.NODE_ENV) ?? "development";
 
-const LogLevel: Level[] = [
-  "debug",
-  "info",
-  "warn",
-  "error",
-  "fatal",
-  "trace",
-] as const;
+const LogLevel: Level[] = ["debug", "info", "warn", "error", "fatal", "trace"] as const;
 const logLevel = LogLevel.find((s) => s == process.env.LOG_LEVEL);
 
 /// for latest addresses see: https://github.com/firstbatchxyz/dria-contracts/blob/master/deployments/base-sepolia.json
-const DEFAULT_COORDINATOR_ADDRESS: Address =
-  "0x6273Ce6A62F38983f9557F862CF7cB436eB69a12";
-const DEFAULT_PRIVATE_KEY: Hex =
-  "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"; // Anvil account #0
-const DEFAULT_MONGO_URI = "mongodb://localhost:27017";
+const DEFAULT_COORDINATOR_ADDRESS: Address = "0x362fDBB20191ba22d53bF3b09646AA387Cd6dF75";
+const DEFAULT_PRIVATE_KEY: Hex = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"; // Anvil account #0
 const DEFAULT_ARWEAVE_BYTES_LIMIT = 1024; // 1KB
-const DEFAULT_CRON_SLEEP_DURATION_SEC = 120; // 2 minutes
 const DEFAULT_GAS_WARNING_THRESHOLD = "0.00005"; // approx tx fee of Base Sepolia
 
 const config: Readonly<{
@@ -60,18 +48,10 @@ const config: Readonly<{
     NODE_ENV: environment,
     LOG_LEVEL: logLevel ?? "debug",
     PRIVATE_KEY: envHex("PRIVATE_KEY", DEFAULT_PRIVATE_KEY),
-    COORDINATOR_ADDRESS: envAddress(
-      "COORDINATOR_ADDRESS",
-      DEFAULT_COORDINATOR_ADDRESS
-    ),
-    ARWEAVE_BYTES_LIMIT: envNumber(
-      "ARWEAVE_BYTES_LIMIT",
-      DEFAULT_ARWEAVE_BYTES_LIMIT
-    ),
+    COORDINATOR_ADDRESS: envAddress("COORDINATOR_ADDRESS", DEFAULT_COORDINATOR_ADDRESS),
+    ARWEAVE_BYTES_LIMIT: envNumber("ARWEAVE_BYTES_LIMIT", DEFAULT_ARWEAVE_BYTES_LIMIT),
     ARWEAVE_PATH: process.env.ARWEAVE_PATH,
-    GAS_WARNING_THRESHOLD: parseEther(
-      envDefined("GAS_WARNING_THRESHOLD", DEFAULT_GAS_WARNING_THRESHOLD)
-    ),
+    GAS_WARNING_THRESHOLD: parseEther(envDefined("GAS_WARNING_THRESHOLD", DEFAULT_GAS_WARNING_THRESHOLD)),
     RPC_URL: envDefined("RPC_URL"),
   } as const,
   staging: {
@@ -79,14 +59,9 @@ const config: Readonly<{
     LOG_LEVEL: logLevel ?? "info",
     PRIVATE_KEY: envHex("PRIVATE_KEY"),
     COORDINATOR_ADDRESS: envAddress("COORDINATOR_ADDRESS"),
-    ARWEAVE_BYTES_LIMIT: envNumber(
-      "ARWEAVE_BYTES_LIMIT",
-      DEFAULT_ARWEAVE_BYTES_LIMIT
-    ),
+    ARWEAVE_BYTES_LIMIT: envNumber("ARWEAVE_BYTES_LIMIT", DEFAULT_ARWEAVE_BYTES_LIMIT),
     ARWEAVE_PATH: process.env.ARWEAVE_PATH,
-    GAS_WARNING_THRESHOLD: parseEther(
-      envDefined("GAS_WARNING_THRESHOLD", DEFAULT_GAS_WARNING_THRESHOLD)
-    ),
+    GAS_WARNING_THRESHOLD: parseEther(envDefined("GAS_WARNING_THRESHOLD", DEFAULT_GAS_WARNING_THRESHOLD)),
     RPC_URL: envDefined("RPC_URL"),
   } as const,
   production: {
@@ -94,14 +69,9 @@ const config: Readonly<{
     LOG_LEVEL: logLevel ?? "info",
     PRIVATE_KEY: envHex("PRIVATE_KEY"),
     COORDINATOR_ADDRESS: envAddress("COORDINATOR_ADDRESS"),
-    ARWEAVE_BYTES_LIMIT: envNumber(
-      "ARWEAVE_BYTES_LIMIT",
-      DEFAULT_ARWEAVE_BYTES_LIMIT
-    ),
+    ARWEAVE_BYTES_LIMIT: envNumber("ARWEAVE_BYTES_LIMIT", DEFAULT_ARWEAVE_BYTES_LIMIT),
     ARWEAVE_PATH: process.env.ARWEAVE_PATH,
-    GAS_WARNING_THRESHOLD: parseEther(
-      envDefined("GAS_WARNING_THRESHOLD", DEFAULT_GAS_WARNING_THRESHOLD)
-    ),
+    GAS_WARNING_THRESHOLD: parseEther(envDefined("GAS_WARNING_THRESHOLD", DEFAULT_GAS_WARNING_THRESHOLD)),
     RPC_URL: envDefined("RPC_URL"),
   } as const,
 }[environment];

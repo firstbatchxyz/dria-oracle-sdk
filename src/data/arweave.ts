@@ -61,6 +61,7 @@ export class ArweaveStorage<T> implements DecentralizedStorage<T, string> {
 
   async balance(): Promise<bigint> {
     const balance = await this.irys.getBalance(this.irys.address);
+
     // `BigNumber` to `bigint`
     return BigInt(`0x${balance.toString(16)}`);
   }

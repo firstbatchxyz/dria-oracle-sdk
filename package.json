@@ -39,5 +39,8 @@
     "lint": "eslint '**/*.ts'",
     "build": "pkgroll",
     "test": "NODE_ENV=test jest"
+  },
+  "prettier": {
+    "printWidth": 120
   }
 }

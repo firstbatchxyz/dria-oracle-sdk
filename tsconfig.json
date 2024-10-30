@@ -21,7 +21,10 @@
 
     // THIS IS IMPORTANT FOR VIEM
     // https://github.com/wevm/viem/issues/2163
-    "strictNullChecks": true
+    "strictNullChecks": true,
+
+    /// Also needed for Viem
+    "strict": true
   },
   "exclude": ["node_modules", "dist"]
 }
