@@ -1,7 +1,7 @@
 {
-  "name": "oracle-twitter-agent",
-  "private": true,
-  "version": "0.1.0",
+  "name": "dria-oracle-sdk",
+  "version": "0.0.1",
+  "license": "MIT",
   "author": "FirstBatch Team <dev@firstbatch.xyz>",
   "contributors": [
     "Erhan Tezcan <erhan@firstbatch.xyz>"

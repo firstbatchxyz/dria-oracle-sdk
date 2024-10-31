@@ -75,9 +75,9 @@ export interface TaskResponseProcessed {
   /** Final validation score assigned by validators, stays 0 if there is no validation. */
   score: bigint;
   /** Processed output. */
-  output: string;
+  output: string | null;
   /** Processed metadata. */
-  metadata: string;
+  metadata: string | null;
 }
 
 /** A task validation for a response. */
@@ -87,7 +87,7 @@ export interface TaskValidation {
   /** Proof-of-Work nonce for SHA3(taskId, input, requester, responder, nonce) < difficulty. */
   nonce: bigint;
   /** Validation scores */
-  scores: bigint[];
+  scores: readonly bigint[];
   /** Optional metadata for this validation. */
   metadata: Hex;
 }
@@ -145,7 +145,7 @@ const Models = [
 export type Models = (typeof Models)[number];
 
 /**
- * Allowed request models for type-safety.
+ * Allowed request models.
  *
  * - An array of `Models` strings.
  * - `*` for any model randomly (of the responder).

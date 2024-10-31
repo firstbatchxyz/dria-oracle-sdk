@@ -16,8 +16,15 @@ import {
 import type { Address, Hex, Prettify } from "viem";
 import { Storage } from "../data";
 import coordinatorAbi from "./abi";
-// import { contractBytesToString, logger, stringToContractBytes } from "../utilities";
-import { RequestModels, TaskParameters, TaskRequest, TaskResponse, TaskResponseProcessed, TaskStatus } from "./types";
+import {
+  RequestModels,
+  TaskParameters,
+  TaskRequest,
+  TaskResponse,
+  TaskResponseProcessed,
+  TaskStatus,
+  TaskValidation,
+} from "./types";
 
 /**
  * The Oracle client is used to interact with the Dria Oracles. It allows you to make requests, read responses, and process them.
@@ -27,8 +34,8 @@ import { RequestModels, TaskParameters, TaskRequest, TaskResponse, TaskResponseP
  * await oracle.init(coordinatorAddress);
  */
 export class Oracle<T extends Transport, C extends Chain> {
-  public coordinator?: Oracle.Coordinator;
-  public token?: Oracle.Token;
+  public coordinator?: ReturnType<InstanceType<typeof Oracle<Transport, Chain>>["Coordinator"]>;
+  public token?: ReturnType<InstanceType<typeof Oracle<Transport, Chain>>["Token"]>;
 
   // defaults
   public taskParameters: TaskParameters = { difficulty: 2, numGenerations: 1, numValidations: 1 };
@@ -116,11 +123,13 @@ export class Oracle<T extends Transport, C extends Chain> {
       taskParameters?: Partial<TaskParameters>;
       protocol?: string;
     } = {}
-  ): Promise<bigint> {
+  ): Promise<{ txHash: Hex; taskId: bigint }> {
     if (this.coordinator === undefined) {
       throw new Error("Coordinator not initialized.");
     }
+    // models are comma-separated
     const modelsString = Array.isArray(models) ? models.join(",") : (models as string);
+
     const inputBytes = await this.stringToContractBytes(input);
     const modelBytes = await this.stringToContractBytes(modelsString);
     const protocolBytes = toHex(opts.protocol ?? this.protocol, { size: 32 }); // bytes32 type
@@ -145,18 +154,31 @@ export class Oracle<T extends Transport, C extends Chain> {
     }
 
     const taskId = logs[0].args.taskId;
-    return taskId;
+    return { txHash, taskId };
   }
 
   /**
-   * Alias for `readResponse` and `processResponse`.
-   *
+   * Alias for `getBestResponse` and `processResponse`.
    * @param taskId task id
    * @returns processed task response
    */
   async read(taskId: bigint): Promise<Prettify<TaskResponseProcessed>> {
-    const response = await this.readResponse(taskId);
+    const response = await this.getBestResponse(taskId);
     return this.processResponse(response);
+  }
+
+  /**
+   * Returns the highest scored response of a task.
+   * Will throw an error if the task is not completed yet!
+   *
+   * @param taskId task id
+   * @returns task response with the highest score
+   */
+  async getBestResponse(taskId: bigint): Promise<Prettify<TaskResponse>> {
+    if (this.coordinator === undefined) {
+      throw new Error("Coordinator not initialized.");
+    }
+    return await this.coordinator.read.getBestResponse([taskId]);
   }
 
   /**
@@ -164,55 +186,28 @@ export class Oracle<T extends Transport, C extends Chain> {
    * @param taskId task id
    * @returns task response
    */
-  async readRequest(taskId: bigint): Promise<Prettify<TaskRequest>> {
+  async getValidations(taskId: bigint): Promise<readonly Prettify<TaskValidation>[]> {
     if (this.coordinator === undefined) {
       throw new Error("Coordinator not initialized.");
     }
-
-    const requestRaw = await this.coordinator.read.requests([taskId]);
-    const request: TaskRequest = {
-      requester: requestRaw[0],
-      protocol: requestRaw[1],
-      parameters: requestRaw[2],
-      status: requestRaw[3],
-      generatorFee: requestRaw[4],
-      validatorFee: requestRaw[5],
-      platformFee: requestRaw[6],
-      input: requestRaw[7],
-      models: requestRaw[8],
-    };
-
-    return request;
+    return this.coordinator.read.getValidations([taskId]);
   }
 
   /**
-   * Reads the response of a task.
+   * Read the validations of a task.
    * @param taskId task id
    * @param idx index of the response, if not provided, the best & completed response is returned
    * @returns task response
    */
-  async readResponse(taskId: bigint, idx?: bigint): Promise<Prettify<TaskResponse>> {
+  async readResponses(taskId: bigint): Promise<readonly Prettify<TaskResponse>[]> {
     if (this.coordinator === undefined) {
       throw new Error("Coordinator not initialized.");
     }
-
-    if (idx === undefined) {
-      return await this.coordinator.read.getBestResponse([taskId]);
-    } else {
-      const responseRaw = await this.coordinator.read.responses([taskId, idx]);
-      const response: TaskResponse = {
-        responder: responseRaw[0],
-        nonce: responseRaw[1],
-        score: responseRaw[2],
-        output: responseRaw[3],
-        metadata: responseRaw[4],
-      };
-      return response;
-    }
+    return await this.coordinator.read.getResponses([taskId]);
   }
 
   /**
-   *
+   * Process the `output` and `metadata` of a task, with respect to the given storage.
    * @param response existing response object
    * @returns response object with processed `output` and `metadata`
    */
@@ -254,7 +249,7 @@ export class Oracle<T extends Transport, C extends Chain> {
               resolve();
             }
           },
-          onError: (err) => reject(err),
+          // onError: (err) => reject(err), // TODO: should we handle any stuff here?
         }
       );
     });
@@ -272,6 +267,7 @@ export class Oracle<T extends Transport, C extends Chain> {
   /**
    * Approves the coordinator to spend the client's tokens.
    * @param amount amount to approve, defaults to max uint256 (infinite)
+   * @returns transaction hash
    */
   async approve(amount?: bigint): Promise<Hex> {
     if (this.token === undefined) {
@@ -310,21 +306,18 @@ export class Oracle<T extends Transport, C extends Chain> {
    * - If `storage` is given, downloads the string from storage if it is matching a key.
    * - Otherwise, converts the bytes to a string.
    *
+   * If no value is found at the storage, it returns `null`.
+   *
    * @param input bytes
    * @param storage decentralized storage, optional
    * @returns parsed string
    */
-  async contractBytesToString(input: Hex): Promise<string> {
+  async contractBytesToString(input: Hex): Promise<string | null> {
     const inputStr = bytesToString(Buffer.from(input.slice(2), "hex"));
     if (this.storage && this.storage.isKey(inputStr)) {
-      return (await this.storage.get(input)) ?? ""; // FIXME: !!!
+      return await this.storage.get(input);
     } else {
       return inputStr;
     }
   }
-}
-
-export namespace Oracle {
-  export type Token = ReturnType<InstanceType<typeof Oracle<Transport, Chain>>["Token"]>;
-  export type Coordinator = ReturnType<InstanceType<typeof Oracle<Transport, Chain>>["Coordinator"]>;
 }

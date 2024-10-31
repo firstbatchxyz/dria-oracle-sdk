@@ -2,7 +2,7 @@ import { readFileSync } from "fs";
 import { ArweaveStorage } from "../src/data/arweave";
 
 // skip this unless you want to test explicitly
-describe.skip("arweave", () => {
+describe.only("arweave", () => {
   // example at: https://gateway.irys.xyz/jJbabD9VNDIaPTlWaCUZbdlFgbTvL1uY-4605ryuGKg
   // encoded hex key is: 8c96da6c3f5534321a3d39566825196dd94581b4ef2f5b98fb8eb4e6bcae18a8
   const data = "Hello, Arweave!";
