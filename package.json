@@ -4,8 +4,7 @@
   "version": "0.1.0",
   "author": "FirstBatch Team <dev@firstbatch.xyz>",
   "contributors": [
-    "Erhan Tezcan <erhan@firstbatch.xyz>",
-    "Anil Altuner <anil@firstbatch.xyz>"
+    "Erhan Tezcan <erhan@firstbatch.xyz>"
   ],
   "type": "module",
   "main": "./dist/index.cjs",
@@ -20,16 +19,16 @@
   },
   "dependencies": {
     "@irys/sdk": "^0.2.11",
-    "dotenv": "^16.4.5",
-    "pino": "^9.5.0",
     "viem": "^2.21.37"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",
     "@types/node": "^22.8.4",
+    "dotenv": "^16.4.5",
     "jest": "^29.7.0",
-    "pino-pretty": "^11.3.0",
+    "pkgroll": "^2.5.1",
     "ts-jest": "^29.2.5",
+    "ts-node": "^10.9.2",
     "tsx": "^4.19.2",
     "typescript": "^5.6.3"
   },

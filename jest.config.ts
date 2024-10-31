@@ -6,8 +6,8 @@ const config: JestConfigWithTsJest = {
   transform: {
     "^.+\\.(ts|js)$": "ts-jest",
   },
-  globalSetup: "<rootDir>/environment/setup.ts",
-  globalTeardown: "<rootDir>/environment/teardown.ts",
+  // globalSetup: "<rootDir>/environment/setup.ts",
+  // globalTeardown: "<rootDir>/environment/teardown.ts",
   testTimeout: 60000,
   verbose: true,
   detectOpenHandles: true,

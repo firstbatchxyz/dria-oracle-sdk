@@ -1,32 +1,37 @@
 import {
   Account,
-  Address,
+  bytesToString,
   Chain,
   erc20Abi,
   getContract,
-  type Hex,
   maxUint256,
   parseAbi,
   parseEventLogs,
-  type Prettify,
   PublicClient,
+  stringToBytes,
   toHex,
   Transport,
   WalletClient,
 } from "viem";
-import { DecentralizedStorage } from "../data";
+import type { Address, Hex, Prettify } from "viem";
+import { Storage } from "../data";
 import coordinatorAbi from "./abi";
-import { contractBytesToString, logger, stringToContractBytes } from "../utilities";
+// import { contractBytesToString, logger, stringToContractBytes } from "../utilities";
 import { RequestModels, TaskParameters, TaskRequest, TaskResponse, TaskResponseProcessed, TaskStatus } from "./types";
 
+/**
+ * The Oracle client is used to interact with the Dria Oracles. It allows you to make requests, read responses, and process them.
+ *
+ * @example
+ * const oracle = new Oracle({ public, wallet });
+ * await oracle.init(coordinatorAddress);
+ */
 export class Oracle<T extends Transport, C extends Chain> {
   public coordinator?: Oracle.Coordinator;
   public token?: Oracle.Token;
-  public taskParameters: TaskParameters = {
-    difficulty: 2,
-    numGenerations: 1,
-    numValidations: 1,
-  };
+
+  // defaults
+  public taskParameters: TaskParameters = { difficulty: 2, numGenerations: 1, numValidations: 1 };
   public protocol = "oracle-js-sdk/0.1.0";
 
   constructor(
@@ -34,7 +39,7 @@ export class Oracle<T extends Transport, C extends Chain> {
       public: PublicClient<T, C>;
       wallet: WalletClient<T, C, Account>;
     },
-    readonly storage?: DecentralizedStorage<string>
+    readonly storage?: Storage<string>
   ) {}
 
   /**
@@ -48,7 +53,11 @@ export class Oracle<T extends Transport, C extends Chain> {
     this.token = this.Token(tokenAddr);
   }
 
-  withOptions(opts: Partial<TaskParameters>) {
+  /**
+   * Change the underlying default task parameters.
+   * @param opts new default task parameters
+   */
+  withParameters(opts: Partial<TaskParameters>) {
     this.taskParameters = {
       ...this.taskParameters,
       ...opts,
@@ -57,9 +66,12 @@ export class Oracle<T extends Transport, C extends Chain> {
     return this;
   }
 
+  /**
+   * Change the underlying default protocol.
+   * @param protocol protocol name
+   */
   withProtocol(protocol: string) {
-    this.protocol = toHex(protocol, { size: 32 });
-
+    this.protocol = protocol;
     return this;
   }
 
@@ -88,9 +100,12 @@ export class Oracle<T extends Transport, C extends Chain> {
   }
 
   /**
-   *
+   * Make an oracle request.
    * @param input input string
-   * @param models requested models
+   * @param models requested models, can be any of the following:
+   * - `*` for all models
+   * - `!` for first model of the responder
+   * - `["model1", "model2", ...]` for specific models
    * @param opts optional arguments
    * @returns task id
    */
@@ -106,8 +121,8 @@ export class Oracle<T extends Transport, C extends Chain> {
       throw new Error("Coordinator not initialized.");
     }
     const modelsString = Array.isArray(models) ? models.join(",") : (models as string);
-    const inputBytes = await stringToContractBytes(input, this.storage);
-    const modelBytes = await stringToContractBytes(modelsString, this.storage);
+    const inputBytes = await this.stringToContractBytes(input);
+    const modelBytes = await this.stringToContractBytes(modelsString);
     const protocolBytes = toHex(opts.protocol ?? this.protocol, { size: 32 }); // bytes32 type
 
     // make the request
@@ -115,7 +130,7 @@ export class Oracle<T extends Transport, C extends Chain> {
       [protocolBytes, inputBytes, modelBytes, { ...this.taskParameters, ...opts.taskParameters }],
       { chain: this.client.wallet.chain, account: this.client.wallet.account }
     );
-    logger.debug(`Request transaction hash: ${txHash}`);
+    // logger.debug(`Request transaction hash: ${txHash}`);
 
     // wait for receipt & parse event
     const receipt = await this.client.public.waitForTransactionReceipt({ hash: txHash });
@@ -125,7 +140,7 @@ export class Oracle<T extends Transport, C extends Chain> {
       eventName: "Request",
     });
     if (logs.length === 0) {
-      logger.error(`Could not find request event in: ${logs}`);
+      // logger.error(`Could not find request event in: ${logs}`);
       throw new Error("Request event not found in logs.");
     }
 
@@ -204,8 +219,8 @@ export class Oracle<T extends Transport, C extends Chain> {
   async processResponse(response: TaskResponse): Promise<Prettify<TaskResponseProcessed>> {
     return {
       ...response,
-      output: await contractBytesToString(response.output, this.storage),
-      metadata: await contractBytesToString(response.metadata, this.storage),
+      output: await this.contractBytesToString(response.output),
+      metadata: await this.contractBytesToString(response.metadata),
     };
   }
 
@@ -213,12 +228,18 @@ export class Oracle<T extends Transport, C extends Chain> {
    * Waits for a task to be completed.
    * @param taskId task id
    */
-  async wait(taskId: bigint): Promise<Hex> {
+  async wait(taskId: bigint): Promise<void> {
     if (this.coordinator === undefined) {
       throw new Error("Coordinator not initialized.");
     }
 
-    return new Promise<Hex>((resolve, reject) => {
+    // check if its completed already
+    const requestRaw = await this.coordinator.read.requests([taskId]);
+    if (requestRaw[3] === TaskStatus.Completed) {
+      return;
+    }
+
+    return new Promise<void>((resolve, reject) => {
       const unwatch = this.coordinator!.watchEvent.StatusUpdate(
         {
           taskId,
@@ -228,9 +249,9 @@ export class Oracle<T extends Transport, C extends Chain> {
           onLogs: (logs) => {
             const status = logs[0].args.statusAfter;
             if (status === TaskStatus.Completed) {
-              logger.debug(`Task ${taskId} completed.`);
+              // logger.debug(`Task ${taskId} completed.`);
               unwatch();
-              resolve(logs[0].transactionHash);
+              resolve();
             }
           },
           onError: (err) => reject(err),
@@ -262,6 +283,44 @@ export class Oracle<T extends Transport, C extends Chain> {
       chain: this.client.wallet.chain,
       account: this.client.wallet.account,
     });
+  }
+
+  /**
+   * Given a string, converts it to a `Hex` string and then:
+   * - If `storage` is given, uploads the string to the storage if its large enough and returns the key
+   * - Otherwise, returns the `Hex` string, equivalent to a `bytes` type in Solidity.
+   *
+   * @param bytes input string
+   * @param storage decentralized storage, optional
+   * @returns a `Hex` string, with 0x prefix
+   */
+  async stringToContractBytes(input: string): Promise<Hex> {
+    const inputBytes = stringToBytes(input);
+    if (this.storage && inputBytes.length > this.storage.bytesLimit) {
+      const key = await this.storage.put(input);
+      // we have to encode the key again, so that it when decoded it is a string of 64 character
+      return `0x${Buffer.from(stringToBytes(key)).toString("hex")}`;
+    } else {
+      return `0x${Buffer.from(inputBytes).toString("hex")}`;
+    }
+  }
+
+  /**
+   * Given a `bytes` Solidity type, converts it to a string:
+   * - If `storage` is given, downloads the string from storage if it is matching a key.
+   * - Otherwise, converts the bytes to a string.
+   *
+   * @param input bytes
+   * @param storage decentralized storage, optional
+   * @returns parsed string
+   */
+  async contractBytesToString(input: Hex): Promise<string> {
+    const inputStr = bytesToString(Buffer.from(input.slice(2), "hex"));
+    if (this.storage && this.storage.isKey(inputStr)) {
+      return (await this.storage.get(input)) ?? ""; // FIXME: !!!
+    } else {
+      return inputStr;
+    }
   }
 }
 

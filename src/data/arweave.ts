@@ -1,20 +1,29 @@
 import { isHex } from "viem";
 import Irys from "@irys/sdk";
 import { ArweaveIrys } from "@irys/sdk/node/flavours/arweave";
-
-import { logger } from "../utilities";
-import type { DecentralizedStorage } from "./";
+import type { Storage } from "./";
 
 /** Re-export of the requested Wallet type. */
 export type JWKInterface = ConstructorParameters<typeof ArweaveIrys>[0]["key"];
 
-export class ArweaveStorage<T> implements DecentralizedStorage<T, string> {
+/**
+ * An Arweave wrapper for decentralized storage interface.
+ *
+ * This class uses the Irys SDK to interact with the Arweave network.
+ */
+export class ArweaveStorage<T> implements Storage<T, string> {
+  public bytesLimit: number;
+
   /** Irys SDK instance. */
   public irys: ArweaveIrys;
   /** Base URL of the gateway. */
   public baseUrl: string = "https://gateway.irys.xyz";
 
-  constructor(key: JWKInterface) {
+  /**
+   * @param key Arweave wallet object
+   * @param bytesLimit number of bytes such that smaller data are not uploaded, default is 1024 bytes
+   */
+  constructor(key: JWKInterface, bytesLimit: number = 1024) {
     const network = "mainnet";
     const token = "arweave";
 
@@ -23,6 +32,8 @@ export class ArweaveStorage<T> implements DecentralizedStorage<T, string> {
       token, // Token used for payment and signing
       key, // Arweave wallet
     });
+
+    this.bytesLimit = bytesLimit;
   }
 
   isKey(key: string): boolean {
@@ -33,18 +44,18 @@ export class ArweaveStorage<T> implements DecentralizedStorage<T, string> {
   async get(key: string): Promise<T | null> {
     // ensure that it is a valid key
     if (!this.isKey(key)) {
-      logger.error(`Invalid key: ${key}, expected hex string.`);
+      // logger.error(`Invalid key: ${key}, expected hex string.`);
       return null;
     }
 
     // convert to base64url
     const keyb64 = Buffer.from(key, "hex").toString("base64url");
     const url = `${this.baseUrl}/${keyb64}`;
-    logger.debug(`Fetching: ${url}`);
+    // logger.debug(`Fetching: ${url}`);
 
     const res = await fetch(url);
     if (!res.ok) {
-      logger.error(`Failed to fetch ${url} (Status: ${res.statusText})`);
+      // logger.error(`Failed to fetch ${url} (Status: ${res.statusText})`);
       return null;
     } else {
       return res.json() as Promise<T>;
@@ -54,7 +65,7 @@ export class ArweaveStorage<T> implements DecentralizedStorage<T, string> {
   async put(value: T): Promise<string> {
     const valueBytes = Buffer.from(JSON.stringify(value));
     const receipt = await this.irys.upload(valueBytes);
-    logger.debug(`Data uploaded to Arweave: ${this.baseUrl}/${receipt.id}`);
+    // logger.debug(`Data uploaded to Arweave: ${this.baseUrl}/${receipt.id}`);
 
     return Buffer.from(receipt.id, "base64url").toString("hex");
   }

@@ -28,6 +28,7 @@ export interface TaskParameters {
   /**  Number of validations. */
   numValidations: number;
 }
+
 /**
  * A task request for LLM generation.
  * Fees are stored here as well in case fee changes occur within the duration of a task.
@@ -150,4 +151,4 @@ export type Models = (typeof Models)[number];
  * - `*` for any model randomly (of the responder).
  * - `!` for the first model (of the responder).
  */
-export type RequestModels = typeof Models | "*" | "!";
+export type RequestModels = (typeof Models)[number][] | "*" | "!";

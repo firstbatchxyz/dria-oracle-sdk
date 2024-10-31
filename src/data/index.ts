@@ -3,7 +3,10 @@
  * @template T The type of the data to store.
  * @template K The type of the key to use.
  */
-export interface DecentralizedStorage<T = unknown, K extends PropertyKey = string> {
+export interface Storage<T = unknown, K extends PropertyKey = string> {
+  /** The number of bytes, after which storage shall be considered. */
+  bytesLimit: number;
+
   /**
    * @param key The key to get the value for.
    * @returns The value at the key, or null if it does not exist.
