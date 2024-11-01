@@ -54,7 +54,7 @@ export interface TaskRequest {
   models: Hex;
 }
 
-export interface TaskResponse {
+export interface TaskResponse<O = Hex, M = Hex> {
   /** Responding Oracle address. */
   responder: Address;
   /** Proof-of-Work nonce for SHA3(taskId, input, requester, responder, nonce) < difficulty. */
@@ -62,22 +62,9 @@ export interface TaskResponse {
   /** Final validation score assigned by validators, stays 0 if there is no validation. */
   score: bigint;
   /** Output data for the task, usually the direct output of LLM. */
-  output: Hex;
+  output: O;
   /** Optional metadata for this generation. */
-  metadata: Hex;
-}
-
-export interface TaskResponseProcessed {
-  /** Responding Oracle address. */
-  responder: Address;
-  /** Proof-of-Work nonce for SHA3(taskId, input, requester, responder, nonce) < difficulty. */
-  nonce: bigint;
-  /** Final validation score assigned by validators, stays 0 if there is no validation. */
-  score: bigint;
-  /** Processed output. */
-  output: string | null;
-  /** Processed metadata. */
-  metadata: string | null;
+  metadata: M;
 }
 
 /** A task validation for a response. */
@@ -152,3 +139,21 @@ export type Models = (typeof Models)[number];
  * - `!` for the first model (of the responder).
  */
 export type RequestModels = (typeof Models)[number][] | "*" | "!";
+
+/** A chat history entry. */
+export type ChatHistoryResponse = {
+  /** Role, usually `user`, `assistant` or `system`. */
+  role: string;
+  /** Message content. */
+  content: string;
+  /** Task Id of this entry */
+  id: number;
+};
+
+/** A request with chat history. */
+export type ChatHistoryRequest = {
+  /** Task Id of which the output will act like history. */
+  historyId: number;
+  /** Message content. */
+  content: string;
+};

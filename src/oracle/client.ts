@@ -17,11 +17,11 @@ import type { Address, Hex, Prettify } from "viem";
 import { Storage } from "../data";
 import coordinatorAbi from "./abi";
 import {
+  ChatHistoryRequest,
   RequestModels,
   TaskParameters,
   TaskRequest,
   TaskResponse,
-  TaskResponseProcessed,
   TaskStatus,
   TaskValidation,
 } from "./types";
@@ -108,7 +108,10 @@ export class Oracle<T extends Transport, C extends Chain> {
 
   /**
    * Make an oracle request.
-   * @param input input string
+   * @param input input string, or a chat input
+   * - a string input can be anything, like "What is 2+2?"
+   * - a chat input is an object `{historyId: number, content: string}` where
+   * the `historyId` is a task id the output of which is to be used as history
    * @param models requested models, can be any of the following:
    * - `*` for all models
    * - `!` for first model of the responder
@@ -117,7 +120,7 @@ export class Oracle<T extends Transport, C extends Chain> {
    * @returns task id
    */
   async request(
-    input: string,
+    input: string | Prettify<ChatHistoryRequest>,
     models: RequestModels,
     opts: {
       taskParameters?: Partial<TaskParameters>;
@@ -129,6 +132,14 @@ export class Oracle<T extends Transport, C extends Chain> {
     }
     // models are comma-separated
     const modelsString = Array.isArray(models) ? models.join(",") : (models as string);
+    if (typeof input !== "string") {
+      // this is chat input, check historyId
+      if (!(await this.isCompleted(input.historyId))) {
+        throw new Error("Chat history task is not completed.");
+      }
+      // non-string inputs are stringified
+      input = JSON.stringify(input);
+    }
 
     const inputBytes = await this.stringToContractBytes(input);
     const modelBytes = await this.stringToContractBytes(modelsString);
@@ -162,9 +173,22 @@ export class Oracle<T extends Transport, C extends Chain> {
    * @param taskId task id
    * @returns processed task response
    */
-  async read(taskId: bigint): Promise<Prettify<TaskResponseProcessed>> {
+  async read(taskId: bigint): Promise<Prettify<TaskResponse<string | null, string | null>>> {
     const response = await this.getBestResponse(taskId);
     return this.processResponse(response);
+  }
+
+  /**
+   * Returns a boolean indicating if the task is completed.
+   * @param taskId task id
+   * @returns true if the task is completed
+   */
+  async isCompleted(taskId: bigint | number): Promise<boolean> {
+    if (this.coordinator === undefined) {
+      throw new Error("Coordinator not initialized.");
+    }
+    const requestRaw = await this.coordinator.read.requests([BigInt(taskId)]);
+    return requestRaw[3] === TaskStatus.Completed;
   }
 
   /**
@@ -211,7 +235,7 @@ export class Oracle<T extends Transport, C extends Chain> {
    * @param response existing response object
    * @returns response object with processed `output` and `metadata`
    */
-  async processResponse(response: TaskResponse): Promise<Prettify<TaskResponseProcessed>> {
+  async processResponse(response: TaskResponse): Promise<Prettify<TaskResponse<string | null, string | null>>> {
     return {
       ...response,
       output: await this.contractBytesToString(response.output),
@@ -229,8 +253,7 @@ export class Oracle<T extends Transport, C extends Chain> {
     }
 
     // check if its completed already
-    const requestRaw = await this.coordinator.read.requests([taskId]);
-    if (requestRaw[3] === TaskStatus.Completed) {
+    if (await this.isCompleted(taskId)) {
       return;
     }
 
