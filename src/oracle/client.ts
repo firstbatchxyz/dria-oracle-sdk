@@ -153,6 +153,17 @@ export class Oracle<T extends Transport, C extends Chain> {
   }
 
   /**
+   * Alias for `getBestResponse` followed by `processResponse`.
+   * @param taskId task id
+   * @param kind task kind, e.g. `chat` for conversational models
+   * @returns processed task response
+   */
+  async read(taskId: bigint) {
+    const response = await this.getBestResponse(taskId);
+    return this.processResponse(response);
+  }
+
+  /**
    *
    * @param txHash transaction hash for the request (see `request`)
    * @returns taskId
@@ -170,16 +181,6 @@ export class Oracle<T extends Transport, C extends Chain> {
 
     const taskId = logs[0].args.taskId;
     return taskId;
-  }
-  /**
-   * Alias for `getBestResponse` followed by `processResponse`.
-   * @param taskId task id
-   * @param kind task kind, e.g. `chat` for conversational models
-   * @returns processed task response
-   */
-  async read(taskId: bigint) {
-    const response = await this.getBestResponse(taskId);
-    return this.processResponse(response);
   }
 
   /**

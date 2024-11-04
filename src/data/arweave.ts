@@ -9,7 +9,8 @@ export type JWKInterface = ConstructorParameters<typeof ArweaveIrys>[0]["key"];
 /**
  * An Arweave wrapper for decentralized storage interface.
  *
- * This class uses the Irys SDK to interact with the Arweave network.
+ * This class uses the Irys SDK to interact with the Arweave network,
+ * so it requires `@irys/sdk` peer dependency.
  */
 export class ArweaveStorage<T> implements Storage<T, string> {
   public bytesLimit: number;
