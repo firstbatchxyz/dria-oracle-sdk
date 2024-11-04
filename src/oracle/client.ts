@@ -18,9 +18,9 @@ import { Storage } from "../data";
 import coordinatorAbi from "./abi";
 import {
   ChatHistoryRequest,
+  ChatHistoryResponse,
   RequestModels,
   TaskParameters,
-  TaskRequest,
   TaskResponse,
   TaskStatus,
   TaskValidation,
@@ -117,7 +117,7 @@ export class Oracle<T extends Transport, C extends Chain> {
    * - `!` for first model of the responder
    * - `["model1", "model2", ...]` for specific models
    * @param opts optional arguments
-   * @returns task id
+   * @returns task transaction hash
    */
   async request(
     input: string | Prettify<ChatHistoryRequest>,
@@ -126,7 +126,7 @@ export class Oracle<T extends Transport, C extends Chain> {
       taskParameters?: Partial<TaskParameters>;
       protocol?: string;
     } = {}
-  ): Promise<{ txHash: Hex; taskId: bigint }> {
+  ) {
     if (this.coordinator === undefined) {
       throw new Error("Coordinator not initialized.");
     }
@@ -146,13 +146,18 @@ export class Oracle<T extends Transport, C extends Chain> {
     const protocolBytes = toHex(opts.protocol ?? this.protocol, { size: 32 }); // bytes32 type
 
     // make the request
-    const txHash = await this.coordinator.write.request(
+    return await this.coordinator.write.request(
       [protocolBytes, inputBytes, modelBytes, { ...this.taskParameters, ...opts.taskParameters }],
       { chain: this.client.wallet.chain, account: this.client.wallet.account }
     );
-    // logger.debug(`Request transaction hash: ${txHash}`);
+  }
 
-    // wait for receipt & parse event
+  /**
+   *
+   * @param txHash transaction hash for the request (see `request`)
+   * @returns taskId
+   */
+  async waitRequest(txHash: Hex) {
     const receipt = await this.client.public.waitForTransactionReceipt({ hash: txHash });
     const logs = parseEventLogs({
       abi: parseAbi(["event Request(uint256 indexed taskId, address indexed requester, bytes32 indexed protocol)"]),
@@ -160,20 +165,19 @@ export class Oracle<T extends Transport, C extends Chain> {
       eventName: "Request",
     });
     if (logs.length === 0) {
-      // logger.error(`Could not find request event in: ${logs}`);
-      throw new Error("Request event not found in logs.");
+      throw new Error(`Request event not found in logs: ${JSON.stringify(logs)}`);
     }
 
     const taskId = logs[0].args.taskId;
-    return { txHash, taskId };
+    return taskId;
   }
-
   /**
-   * Alias for `getBestResponse` and `processResponse`.
+   * Alias for `getBestResponse` followed by `processResponse`.
    * @param taskId task id
+   * @param kind task kind, e.g. `chat` for conversational models
    * @returns processed task response
    */
-  async read(taskId: bigint): Promise<Prettify<TaskResponse<string | null, string | null>>> {
+  async read(taskId: bigint) {
     const response = await this.getBestResponse(taskId);
     return this.processResponse(response);
   }
@@ -235,12 +239,20 @@ export class Oracle<T extends Transport, C extends Chain> {
    * @param response existing response object
    * @returns response object with processed `output` and `metadata`
    */
-  async processResponse(response: TaskResponse): Promise<Prettify<TaskResponse<string | null, string | null>>> {
+  async processResponse(response: TaskResponse) {
+    const output = await this.contractBytesToString(response.output);
+    const metadata = await this.contractBytesToString(response.metadata);
+
     return {
       ...response,
-      output: await this.contractBytesToString(response.output),
-      metadata: await this.contractBytesToString(response.metadata),
+      output,
+      metadata,
     };
+  }
+
+  /** Shorthand to parse a string to a chat history response. */
+  toChatHistory(str: string): Prettify<ChatHistoryResponse>[] {
+    return JSON.parse(str);
   }
 
   /**
@@ -267,7 +279,6 @@ export class Oracle<T extends Transport, C extends Chain> {
           onLogs: (logs) => {
             const status = logs[0].args.statusAfter;
             if (status === TaskStatus.Completed) {
-              // logger.debug(`Task ${taskId} completed.`);
               unwatch();
               resolve();
             }
@@ -335,10 +346,14 @@ export class Oracle<T extends Transport, C extends Chain> {
    * @param storage decentralized storage, optional
    * @returns parsed string
    */
-  async contractBytesToString(input: Hex): Promise<string | null> {
+  async contractBytesToString(input: Hex): Promise<string> {
     const inputStr = bytesToString(Buffer.from(input.slice(2), "hex"));
     if (this.storage && this.storage.isKey(inputStr)) {
-      return await this.storage.get(input);
+      const data = await this.storage.get(input);
+      if (data == null) {
+        throw new Error(`No data found for key: ${input}`);
+      }
+      return data;
     } else {
       return inputStr;
     }

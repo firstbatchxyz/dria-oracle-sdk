@@ -7,6 +7,7 @@ import "dotenv/config";
 
 describe.only("oracle", () => {
   let oracle: Oracle<HttpTransport, typeof baseSepolia>;
+  let requestTxHash: Hex;
   let taskId: bigint;
 
   const PRIVATE_KEY =
@@ -26,7 +27,6 @@ describe.only("oracle", () => {
       transport: http(RPC_URL),
     });
 
-    // logger.info("Initializing Oracle client...");
     oracle = new Oracle({
       public: publicClient,
       wallet: walletClient,
@@ -41,9 +41,13 @@ describe.only("oracle", () => {
   });
 
   it("should request a task", async () => {
-    const request = await oracle.request("What is 2+2?", "*");
-    taskId = request.taskId;
-    expect(isHex(request.txHash)).toBeTruthy();
+    requestTxHash = await oracle.request("What is 2+2?", "*");
+    expect(isHex(requestTxHash)).toBeTruthy();
+    console.log({ requestTxHash });
+  });
+
+  it("should wait for request transaction", async () => {
+    taskId = await oracle.waitRequest(requestTxHash);
     expect(taskId).toBeGreaterThan(0n);
     console.log({ taskId });
   });

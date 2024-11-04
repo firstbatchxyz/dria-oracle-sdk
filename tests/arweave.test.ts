@@ -29,4 +29,21 @@ describe.only("arweave", () => {
     const fetched = await arweave.get(key);
     expect(fetched).toEqual(data);
   });
+
+  it("should throw for bad key", async () => {
+    const badKey = "d-_-b";
+    await expect(arweave.get(badKey)).rejects.toThrow();
+  });
+
+  it("should return null for non-existent data", async () => {
+    const key = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    expect(await arweave.get(key)).toEqual(null);
+  });
+
+  it("should download existing data", async () => {
+    // example at: https://gateway.irys.xyz/jJbabD9VNDIaPTlWaCUZbdlFgbTvL1uY-4605ryuGKg
+    const key = "8c96da6c3f5534321a3d39566825196dd94581b4ef2f5b98fb8eb4e6bcae18a8";
+    const fetched = await arweave.get(key);
+    expect(fetched).toEqual(data);
+  });
 });

@@ -25,8 +25,12 @@
 
 ## Installation
 
+Dria Oracle SDK is an NPM package, which can be installed with any of the following:
+
 ```sh
 npm i dria-oracle-sdk
+yarn add dria-oracle-sdk
+pnpm add dria-oracle-sdk
 ```
 
 ## Usage
@@ -72,13 +76,18 @@ if (allowance === 0n) {
 We are now ready to make a request:
 
 ```ts
-const { taskId, txHash } = await oracle.request("What is 2+2?", ["gpt-4o-mini"]);
+// submits the request transaction
+const txHash = await oracle.request("What is 2+2?", ["gpt-4o-mini"]);
+
+// waits for transaction to be mined, returns taskId
+const taskId = await oracle.waitRequest(txHash);
 ```
 
 With the request made, we have to wait for a while for generator and validator oracles to finish their jobs. We can subscribe to a certain `taskId`
 and wait until it is completed with the `wait` function:
 
 ```ts
+// waits for all generation & validations to be finished
 await oracle.wait(taskId);
 ```
 
@@ -87,6 +96,14 @@ When we return from `wait` without any errors, we can be sure that the task is f
 ```ts
 const result = await oracle.read(taskId);
 const { output, metadata } = result;
+```
+
+## Testing
+
+Tests use the live environment, so make sure you have some balance in your wallets. To run them:
+
+```sh
+pnpm test
 ```
 
 ## License

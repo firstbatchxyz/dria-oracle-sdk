@@ -44,29 +44,29 @@ export class ArweaveStorage<T> implements Storage<T, string> {
   async get(key: string): Promise<T | null> {
     // ensure that it is a valid key
     if (!this.isKey(key)) {
-      // logger.error(`Invalid key: ${key}, expected hex string.`);
-      return null;
+      throw new Error(`Invalid key: ${key}`);
     }
 
     // convert to base64url
     const keyb64 = Buffer.from(key, "hex").toString("base64url");
     const url = `${this.baseUrl}/${keyb64}`;
-    // logger.debug(`Fetching: ${url}`);
 
     const res = await fetch(url);
     if (!res.ok) {
-      // logger.error(`Failed to fetch ${url} (Status: ${res.statusText})`);
-      return null;
+      if (res.status === 404) {
+        // data not found
+        return null;
+      } else {
+        throw new Error(`Failed to fetch data: ${await res.text()}`);
+      }
     } else {
-      return res.json() as Promise<T>;
+      return (await res.json()) as T;
     }
   }
 
   async put(value: T): Promise<string> {
     const valueBytes = Buffer.from(JSON.stringify(value));
     const receipt = await this.irys.upload(valueBytes);
-    // logger.debug(`Data uploaded to Arweave: ${this.baseUrl}/${receipt.id}`);
-
     return Buffer.from(receipt.id, "base64url").toString("hex");
   }
 

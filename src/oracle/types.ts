@@ -1,16 +1,18 @@
 import type { Address, Hex } from "viem";
 
 /**
- * Task status.
+ * Task status as it appears within the contract.
  *
  * - `None`: Task has not been created yet. (default)
  * - `PendingGeneration`: Task is waiting for Oracle generation responses.
  * - `PendingValidation`: Task is waiting for validation by validator Oracles.
  * - `Completed`: The task has been completed.
  *
- * With validation, the flow is `None -> PendingGeneration -> PendingValidation -> Completed`.
+ * There are two scenarios:
+ * - With validation, the flow is `None -> PendingGeneration -> PendingValidation -> Completed`.
+ * - Without validation, the flow is `None -> PendingGeneration -> Completed`.
  *
- * Without validation, the flow is `None -> PendingGeneration -> Completed`.
+ * Note that this type is compatible with the contract type (number).
  */
 export enum TaskStatus {
   None,
@@ -146,8 +148,6 @@ export type ChatHistoryResponse = {
   role: string;
   /** Message content. */
   content: string;
-  /** Task Id of this entry */
-  id: number;
 };
 
 /** A request with chat history. */
