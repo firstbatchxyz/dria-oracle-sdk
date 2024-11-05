@@ -1,10 +1,17 @@
 {
   "name": "dria-oracle-sdk",
-  "version": "0.0.1",
+  "version": "0.0.2",
+  "description": "An on-chain AI oracle SDK for Dria",
   "license": "MIT",
   "author": "FirstBatch Team <dev@firstbatch.xyz>",
+  "homepage": "https://github.com/firstbatchxyz/dria-oracle-sdk#readme",
   "contributors": [
     "Erhan Tezcan <erhan@firstbatch.xyz>"
+  ],
+  "files": [
+    "dist/",
+    "LICENSE",
+    "README.md"
   ],
   "type": "module",
   "main": "./dist/index.cjs",
@@ -43,5 +50,14 @@
   },
   "prettier": {
     "printWidth": 120
-  }
+  },
+  "keywords": [
+    "oracle",
+    "blockchain",
+    "dria",
+    "firstbatch",
+    "arweave",
+    "llm",
+    "ai"
+  ]
 }
