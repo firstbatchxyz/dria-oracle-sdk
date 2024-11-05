@@ -15,8 +15,8 @@
     <a href="https://opensource.org/licenses/MIT" target="_blank">
         <img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-7CB9E8.svg">
     </a>
-    <a href="https://www.npmjs.com/package/dria-oracles-sdk" target="_blank">
-        <img alt="NPM" src="https://img.shields.io/npm/v/dria-oracles-sdk?logo=npm&color=CB3837">
+    <a href="https://www.npmjs.com/package/dria-oracle-sdk" target="_blank">
+        <img alt="NPM" src="https://img.shields.io/npm/v/dria-oracle-sdk?logo=npm&color=CB3837">
     </a>
     <a href="https://discord.gg/dria" target="_blank">
         <img alt="Discord" src="https://dcbadge.vercel.app/api/server/dria?style=flat">
