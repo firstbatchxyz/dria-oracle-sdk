@@ -13,7 +13,7 @@ import {
   Transport,
   WalletClient,
 } from "viem";
-import type { Address, Hex, Prettify } from "viem";
+import type { Address, Hex, Prettify, WriteContractReturnType } from "viem";
 import { Storage } from "../data";
 import coordinatorAbi from "./abi";
 import {
@@ -120,13 +120,29 @@ export class Oracle<T extends Transport, C extends Chain> {
    * @returns task transaction hash
    */
   async request(
+    input: string,
+    models: RequestModels,
+    opts?: {
+      taskParameters?: Partial<TaskParameters>;
+      protocol?: string;
+    }
+  ): Promise<WriteContractReturnType>;
+  async request(
+    input: Prettify<ChatHistoryRequest>,
+    models: RequestModels,
+    opts?: {
+      taskParameters?: Partial<TaskParameters>;
+      protocol?: string;
+    }
+  ): Promise<WriteContractReturnType>;
+  async request(
     input: string | Prettify<ChatHistoryRequest>,
     models: RequestModels,
     opts: {
       taskParameters?: Partial<TaskParameters>;
       protocol?: string;
     } = {}
-  ) {
+  ): Promise<WriteContractReturnType> {
     if (this.coordinator === undefined) {
       throw new Error("Coordinator not initialized.");
     }
@@ -134,7 +150,7 @@ export class Oracle<T extends Transport, C extends Chain> {
     const modelsString = Array.isArray(models) ? models.join(",") : (models as string);
     if (typeof input !== "string") {
       // this is chat input, check historyId
-      if (!(await this.isCompleted(input.historyId))) {
+      if (!(await this.isCompleted(input.history_id))) {
         throw new Error("Chat history task is not completed.");
       }
       // non-string inputs are stringified
@@ -186,9 +202,14 @@ export class Oracle<T extends Transport, C extends Chain> {
   /**
    * Returns a boolean indicating if the task is completed.
    * @param taskId task id
-   * @returns true if the task is completed
+   * @returns true if the task is completed, or `taskId` is 0
    */
   async isCompleted(taskId: bigint | number): Promise<boolean> {
+    // 0 is always accepted
+    if (Number(taskId) === 0) {
+      return true;
+    }
+
     if (this.coordinator === undefined) {
       throw new Error("Coordinator not initialized.");
     }

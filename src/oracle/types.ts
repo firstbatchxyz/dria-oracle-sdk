@@ -152,8 +152,9 @@ export type ChatHistoryResponse = {
 
 /** A request with chat history. */
 export type ChatHistoryRequest = {
+  // FIXME: rename to `historyId` when Oracle is updated to handle them
   /** Task Id of which the output will act like history. */
-  historyId: number;
+  history_id: number;
   /** Message content. */
   content: string;
 };
