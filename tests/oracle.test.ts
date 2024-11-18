@@ -9,13 +9,13 @@ describe.only("oracle", () => {
   let oracle: Oracle<HttpTransport, typeof baseSepolia>;
   let requestTxHash: Hex;
 
-  const PRIVATE_KEY =
-    (process.env.PRIVATE_KEY! as Hex) ?? "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"; // anvil #0
-  const RPC_URL = process.env.RPC_URL ?? "https://base-sepolia-rpc.publicnode.com"; // public URL
-  const COORDINATOR_ADDRESS =
-    (process.env.COORDINATOR_ADDRESS as Address) ?? "0x362fDBB20191ba22d53bF3b09646AA387Cd6dF75";
-
   beforeAll(async () => {
+    const PRIVATE_KEY =
+      (process.env.PRIVATE_KEY! as Hex) ?? "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"; // anvil #0
+    const RPC_URL = process.env.RPC_URL ?? "https://base-sepolia-rpc.publicnode.com"; // public URL
+    const COORDINATOR_ADDRESS =
+      (process.env.COORDINATOR_ADDRESS as Address) ?? "0x362fDBB20191ba22d53bF3b09646AA387Cd6dF75";
+
     const walletClient = createWalletClient({
       account: privateKeyToAccount(PRIVATE_KEY),
       chain: baseSepolia,
@@ -58,17 +58,17 @@ describe.only("oracle", () => {
       await oracle.wait(taskId);
     });
 
-    it("should read task request", async () => {
-      const request = await oracle.read(taskId);
-      expect(request).toBeDefined();
-      expect(request.output).toBeDefined();
+    it("should read task response", async () => {
+      const response = await oracle.read(taskId);
+      expect(response).toBeDefined();
+      expect(response.output).toBeDefined();
     });
   });
 
   describe("chat request", () => {
     let taskId: bigint;
 
-    it("should start a chat with first message", async () => {
+    it("should start a new chat session", async () => {
       requestTxHash = await oracle.request({ history_id: 0, content: "What is 2+2?" }, "*");
       expect(isHex(requestTxHash)).toBeTruthy();
       console.log({ requestTxHash });
@@ -84,16 +84,18 @@ describe.only("oracle", () => {
       await oracle.wait(taskId);
     });
 
-    it("should read task request", async () => {
-      const request = await oracle.read(taskId);
-      expect(request).toBeDefined();
-      expect(request.output).toBeDefined();
+    it("should read task response", async () => {
+      const response = await oracle.read(taskId);
+      expect(response).toBeDefined();
+      expect(response.output).toBeDefined();
+      expect(response.output.includes("4")).toBeTruthy();
+      console.log(response.output);
     });
 
     it("should continue a chat", async () => {
       requestTxHash = await oracle.request(
         {
-          history_id: Number(taskId),
+          history_id: taskId,
           content: "What is the square of the number that is the answer to previous question?",
         },
         "*"
@@ -112,11 +114,12 @@ describe.only("oracle", () => {
       await oracle.wait(taskId);
     });
 
-    it("should read task request", async () => {
-      const request = await oracle.read(taskId);
-      expect(request).toBeDefined();
-      expect(request.output).toBeDefined();
-      console.log(request.output);
+    it("should read task response", async () => {
+      const response = await oracle.read(taskId);
+      expect(response).toBeDefined();
+      expect(response.output).toBeDefined();
+      expect(response.output.includes("16")).toBeTruthy();
+      console.log(response.output);
     });
   });
 });

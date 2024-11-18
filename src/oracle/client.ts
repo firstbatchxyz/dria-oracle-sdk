@@ -82,7 +82,7 @@ export class Oracle<T extends Transport, C extends Chain> {
     return this;
   }
 
-  /** Returns a new instance of coordinator contract. */
+  /** Returns a new instance of the LLM coordinator contract. */
   Coordinator(address: Address) {
     return getContract({
       address,
@@ -94,7 +94,7 @@ export class Oracle<T extends Transport, C extends Chain> {
     });
   }
 
-  /** Returns a new instance of token contract. */
+  /** Returns a new instance of an ERC20 token contract. */
   Token(address: Address) {
     return getContract({
       address,
@@ -206,7 +206,7 @@ export class Oracle<T extends Transport, C extends Chain> {
    */
   async isCompleted(taskId: bigint | number): Promise<boolean> {
     // 0 is always accepted
-    if (Number(taskId) === 0) {
+    if (BigInt(taskId) === 0n) {
       return true;
     }
 
@@ -278,7 +278,8 @@ export class Oracle<T extends Transport, C extends Chain> {
   }
 
   /**
-   * Waits for a task to be completed.
+   * Waits for a task to be completed, i.e. it should have all the required
+   * generations and validations be done.
    * @param taskId task id
    */
   async wait(taskId: bigint): Promise<void> {

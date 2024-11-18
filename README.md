@@ -28,7 +28,7 @@
 Dria Oracle SDK is an NPM package, which can be installed with any of the following:
 
 ```sh
-npm i dria-oracle-sdk
+npm  i   dria-oracle-sdk
 yarn add dria-oracle-sdk
 pnpm add dria-oracle-sdk
 ```

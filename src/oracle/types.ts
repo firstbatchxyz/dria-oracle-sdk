@@ -154,7 +154,7 @@ export type ChatHistoryResponse = {
 export type ChatHistoryRequest = {
   // FIXME: rename to `historyId` when Oracle is updated to handle them
   /** Task Id of which the output will act like history. */
-  history_id: number;
+  history_id: number | bigint;
   /** Message content. */
   content: string;
 };

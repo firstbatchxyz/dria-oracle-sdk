@@ -13,6 +13,7 @@ const config: JestConfigWithTsJest = {
   detectOpenHandles: true,
   maxConcurrency: 1,
   rootDir: "./tests",
+  bail: true, // bail out if any test fails
 };
 
 export default config;
