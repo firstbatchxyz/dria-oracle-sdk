@@ -29,14 +29,26 @@ import {
 /**
  * The Oracle client is used to interact with the Dria Oracles. It allows you to make requests, read responses, and process them.
  *
+ * It can be instantiated with a `storage` as well, which can be used to store large data in a decentralized manner.
+ * If the data to be written to contract is large, we can instead store that data in the storage and pass the key to the contract.
+ * This key can then be used to fetch the data from the storage.
+ *
  * @template T transport type, e.g. HTTP or WebSocket (usually inferred)
  * @template C chain type, e.g. Ethereum or Binance Smart Chain (usually inferred)
  * @template K storage key type, e.g. `ArweaveKey` (usually inferred)
  * @example
+ * // without storage
  * const oracle = new Oracle({ public, wallet });
  * await oracle.init(coordinatorAddress);
+ *
+ * @example
+ * // with storage (Arweave)
+ * const wallet = JSON.parse(readFileSync("./path/to/wallet.json", "utf-8"));
+ * const arweave = new ArweaveStorage(wallet);
+ * const oracle = new Oracle({ public, wallet }, arweave);
+ * await oracle.init(coordinatorAddress);
  */
-export class Oracle<T extends Transport, C extends Chain, K> {
+export class Oracle<T extends Transport, C extends Chain, K = unknown> {
   public coordinator?: ReturnType<InstanceType<typeof Oracle<Transport, Chain, K>>["Coordinator"]>;
   public token?: ReturnType<InstanceType<typeof Oracle<Transport, Chain, K>>["Token"]>;
 
@@ -147,8 +159,8 @@ export class Oracle<T extends Transport, C extends Chain, K> {
       input = JSON.stringify(input);
     }
 
-    const inputBytes = await this.stringToContractBytes(input);
-    const modelBytes = await this.stringToContractBytes(modelsString);
+    const inputBytes = await this.stringToContractBytesWithStorage(input);
+    const modelBytes = await this.stringToContractBytesWithStorage(modelsString);
     const protocolBytes = toHex(opts.protocol ?? this.protocol, { size: 32 }); // bytes32 type
 
     // make the request
@@ -252,8 +264,8 @@ export class Oracle<T extends Transport, C extends Chain, K> {
    * @returns response object with processed `output` and `metadata`
    */
   async processResponse(response: TaskResponse) {
-    const output = await this.contractBytesToString(response.output);
-    const metadata = await this.contractBytesToString(response.metadata);
+    const output = await this.contractBytesToStringWithStorage(response.output);
+    const metadata = await this.contractBytesToStringWithStorage(response.metadata);
 
     return {
       ...response,
@@ -336,7 +348,7 @@ export class Oracle<T extends Transport, C extends Chain, K> {
    * @param bytes input string
    * @returns a `Hex` string, with 0x prefix
    */
-  async stringToContractBytes(input: string): Promise<Hex> {
+  async stringToContractBytesWithStorage(input: string): Promise<Hex> {
     const inputBytes = stringToBytes(input);
     if (this.storage && inputBytes.length > this.storage.bytesLimit) {
       const key = await this.storage.put(Buffer.from(input));
@@ -357,7 +369,7 @@ export class Oracle<T extends Transport, C extends Chain, K> {
    * @param storage decentralized storage, optional
    * @returns parsed string
    */
-  async contractBytesToString(input: Hex): Promise<string | null> {
+  async contractBytesToStringWithStorage(input: Hex): Promise<string | null> {
     const inputStr = bytesToString(Buffer.from(input.slice(2), "hex"));
 
     if (this.storage) {

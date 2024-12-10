@@ -88,7 +88,7 @@ describe.only("oracle", () => {
       const response = await oracle.read(taskId);
       expect(response).toBeDefined();
       expect(response.output).toBeDefined();
-      expect(response.output.includes("4")).toBeTruthy();
+      expect(response.output!.includes("4")).toBeTruthy();
       console.log(response.output);
     });
 
@@ -118,7 +118,7 @@ describe.only("oracle", () => {
       const response = await oracle.read(taskId);
       expect(response).toBeDefined();
       expect(response.output).toBeDefined();
-      expect(response.output.includes("16")).toBeTruthy();
+      expect(response.output!.includes("16")).toBeTruthy();
       console.log(response.output);
     });
   });
