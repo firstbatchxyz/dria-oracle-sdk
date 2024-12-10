@@ -1,14 +1,12 @@
 import { readFileSync } from "fs";
-import { ArweaveStorage } from "../src/data/arweave";
+import { ArweaveKey, ArweaveStorage } from "../src/storage/arweave";
 
 // skip this unless you want to test explicitly
 describe.only("arweave", () => {
-  // example at: https://gateway.irys.xyz/jJbabD9VNDIaPTlWaCUZbdlFgbTvL1uY-4605ryuGKg
-  // encoded hex key is: 8c96da6c3f5534321a3d39566825196dd94581b4ef2f5b98fb8eb4e6bcae18a8
-  const data = "Hello, Arweave!";
+  const data = Buffer.from('"Hello, Arweave!"');
 
-  let key: string;
-  let arweave: ArweaveStorage<string>;
+  let key: ArweaveKey;
+  let arweave: ArweaveStorage;
 
   beforeAll(async () => {
     const walletPath = "./tests/secrets/testing.json";
@@ -30,19 +28,13 @@ describe.only("arweave", () => {
     expect(fetched).toEqual(data);
   });
 
-  it("should throw for bad key", async () => {
-    const badKey = "d-_-b";
-    await expect(arweave.get(badKey)).rejects.toThrow();
-  });
-
   it("should return null for non-existent data", async () => {
-    const key = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    const key = { arweave: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" };
     expect(await arweave.get(key)).toEqual(null);
   });
 
   it("should download existing data", async () => {
-    // example at: https://gateway.irys.xyz/jJbabD9VNDIaPTlWaCUZbdlFgbTvL1uY-4605ryuGKg
-    const key = "8c96da6c3f5534321a3d39566825196dd94581b4ef2f5b98fb8eb4e6bcae18a8";
+    const key = { arweave: "jJbabD9VNDIaPTlWaCUZbdlFgbTvL1uY-4605ryuGKg" };
     const fetched = await arweave.get(key);
     expect(fetched).toEqual(data);
   });

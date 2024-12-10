@@ -3,7 +3,7 @@
  * @template T The type of the data to store.
  * @template K The type of the key to use.
  */
-export interface Storage<T = unknown, K extends PropertyKey = string> {
+export interface Storage<T = unknown, K = string> {
   /** The number of bytes, after which storage shall be considered. */
   bytesLimit: number;
 
@@ -22,9 +22,9 @@ export interface Storage<T = unknown, K extends PropertyKey = string> {
 
   /**
    * @param key The key to check.
-   * @returns Whether the key is valid or not.
+   * @returns Whether the key if its valid, or `null` if its invalid.
    */
-  isKey(key: K): boolean;
+  isKey(key: string): K | null;
 
   /** Returns the name of the storage. */
   describe(): string;

@@ -1,10 +1,16 @@
 import { isHex } from "viem";
 import Irys from "@irys/sdk";
 import { ArweaveIrys } from "@irys/sdk/node/flavours/arweave";
-import type { Storage } from "./";
+import type { Storage } from ".";
 
 /** Re-export of the requested Wallet type. */
 export type JWKInterface = ConstructorParameters<typeof ArweaveIrys>[0]["key"];
+
+/**
+ * An Arweave key is considered to be an object with `arweave` field.
+ * See also: <https://github.com/firstbatchxyz/dria-oracle-node> storage.
+ */
+export type ArweaveKey = { arweave: string };
 
 /**
  * An Arweave wrapper for decentralized storage interface.
@@ -12,9 +18,9 @@ export type JWKInterface = ConstructorParameters<typeof ArweaveIrys>[0]["key"];
  * This class uses the Irys SDK to interact with the Arweave network,
  * so it requires `@irys/sdk` peer dependency.
  */
-export class ArweaveStorage<T> implements Storage<T, string> {
+export class ArweaveStorage implements Storage<Buffer, ArweaveKey> {
+  /** Byte threshold, beyond which data is uploaded to Arweave. */
   public bytesLimit: number;
-
   /** Irys SDK instance. */
   public irys: ArweaveIrys;
   /** Base URL of the gateway. */
@@ -37,20 +43,22 @@ export class ArweaveStorage<T> implements Storage<T, string> {
     this.bytesLimit = bytesLimit;
   }
 
-  isKey(key: string): boolean {
-    // 64 hex characters, add 0x to use `isHex` of viem
-    return isHex(`0x${key}`, { strict: true }) && key.length == 64;
-  }
-
-  async get(key: string): Promise<T | null> {
-    // ensure that it is a valid key
-    if (!this.isKey(key)) {
-      throw new Error(`Invalid key: ${key}`);
+  /** Return an `ArweaveKey` object if `key` is a stringified object of the form `{ arweave: string }`. */
+  isKey(key: string): ArweaveKey | null {
+    try {
+      const obj = JSON.parse(key) as Partial<ArweaveKey>;
+      if (obj.arweave && typeof obj.arweave === "string") {
+        return { arweave: obj.arweave };
+      }
+    } catch {
+      // do nothing
     }
 
-    // convert to base64url
-    const keyb64 = Buffer.from(key, "hex").toString("base64url");
-    const url = `${this.baseUrl}/${keyb64}`;
+    return null;
+  }
+
+  async get(key: ArweaveKey): Promise<Buffer | null> {
+    const url = `${this.baseUrl}/${key.arweave}`;
 
     const res = await fetch(url);
     if (!res.ok) {
@@ -61,21 +69,18 @@ export class ArweaveStorage<T> implements Storage<T, string> {
         throw new Error(`Failed to fetch data: ${await res.text()}`);
       }
     } else {
-      return (await res.json()) as T;
+      return Buffer.from(await res.arrayBuffer());
     }
   }
 
-  async put(value: T): Promise<string> {
-    const valueBytes = Buffer.from(JSON.stringify(value));
-    const receipt = await this.irys.upload(valueBytes);
-    return Buffer.from(receipt.id, "base64url").toString("hex");
+  async put(value: Buffer): Promise<ArweaveKey> {
+    const receipt = await this.irys.upload(value);
+    return { arweave: receipt.id };
   }
 
   async balance(): Promise<bigint> {
     const balance = await this.irys.getBalance(this.irys.address);
-
-    // `BigNumber` to `bigint`
-    return BigInt(`0x${balance.toString(16)}`);
+    return BigInt(`0x${balance.toString(16)}`); // `BigNumber` to `bigint`
   }
 
   describe(): string {

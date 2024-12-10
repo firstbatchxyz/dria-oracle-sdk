@@ -1,5 +1,5 @@
 export { Oracle, type RequestModels } from "./oracle/";
 
 // storage types
-export type { Storage } from "./data/";
-export { ArweaveStorage } from "./data/arweave";
+export type { Storage } from "./storage";
+export { ArweaveStorage } from "./storage/arweave";

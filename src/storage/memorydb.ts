@@ -1,4 +1,4 @@
-import type { Storage } from "./";
+import type { Storage } from ".";
 import { randomBytes } from "crypto";
 
 /**
@@ -12,8 +12,8 @@ export class MemoryStorage<T = unknown> implements Storage<T, string> {
   /** In-memory database. */
   db: Record<string, T> = {};
 
-  isKey(key: string): boolean {
-    return key in this.db;
+  isKey(key: string): string | null {
+    return key in this.db ? key : null;
   }
 
   async get(key: string): Promise<T | null> {

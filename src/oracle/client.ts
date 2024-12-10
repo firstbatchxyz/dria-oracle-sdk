@@ -14,7 +14,7 @@ import {
   WalletClient,
 } from "viem";
 import type { Address, Hex, Prettify, WriteContractReturnType } from "viem";
-import { Storage } from "../data";
+import { Storage } from "../storage";
 import coordinatorAbi from "./abi";
 import {
   ChatHistoryRequest,
