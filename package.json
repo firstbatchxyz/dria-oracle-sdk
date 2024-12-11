@@ -1,6 +1,6 @@
 {
   "name": "dria-oracle-sdk",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "An on-chain AI oracle SDK for Dria",
   "license": "MIT",
   "author": "FirstBatch Team <dev@firstbatch.xyz>",

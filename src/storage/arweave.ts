@@ -43,7 +43,11 @@ export class ArweaveStorage implements DecentralizedStorage<Buffer, ArweaveStora
     this.bytesLimit = bytesLimit;
   }
 
-  /** Return an `ArweaveKey` object if `key` is a stringified object of the form `{ arweave: string }`. */
+  /** Return an `ArweaveKey` object if `key` is a stringified object of the form `{ arweave: string }`.
+   *
+   * @example // a valid key
+   * { arweave: "Zg6CZYfxXCWYnCuKEpnZCYfy7ghit1_v4-BCe53iWuA" }
+   */
   isKey(key: string): ArweaveStorageKey | null {
     try {
       const obj = JSON.parse(key) as Partial<ArweaveStorageKey>;

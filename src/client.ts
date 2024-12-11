@@ -67,12 +67,15 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
   /**
    * Initialize the oracle client by setting up contract instances.
    * @param coordinatorAddress coordinator contract address
+   * @returns initialized oracle client
    */
   async init(coordinatorAddress: Address) {
     this.coordinator = this.Coordinator(coordinatorAddress);
 
     const tokenAddr = await this.coordinator.read.feeToken();
     this.token = this.Token(tokenAddr);
+
+    return this;
   }
 
   /**
@@ -271,16 +274,9 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
    * @param response existing response object
    * @returns response object with processed `output` and `metadata`
    */
-  async processResponse(response: TaskResponse): Promise<TaskResponse<string, string>> {
+  async processResponse(response: TaskResponse): Promise<TaskResponse<string | null, string | null>> {
     const output = await contractBytesToStringWithStorage(response.output, this.storage);
-    if (!output) {
-      throw new Error("Output not found in storage.");
-    }
-
     const metadata = await contractBytesToStringWithStorage(response.metadata, this.storage);
-    if (!metadata) {
-      throw new Error("Metadata not found in storage.");
-    }
 
     return {
       ...response,
@@ -297,14 +293,13 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
   async processValidation(validation: TaskValidation): Promise<TaskValidation<TaskValidationScores[]>> {
     const metadata = await contractBytesToStringWithStorage(validation.metadata, this.storage);
     if (!metadata) {
-      throw new Error("Metadata not found in storage.");
+      throw new Error("Validation metadata not found.");
     }
 
     try {
-      const validationScores = JSON.parse(metadata) as TaskValidationScores[];
       return {
         ...validation,
-        metadata: validationScores,
+        metadata: JSON.parse(metadata) as TaskValidationScores[],
       };
     } catch (err) {
       console.error("Error parsing metadata:", err);

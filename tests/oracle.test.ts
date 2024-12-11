@@ -1,4 +1,4 @@
-import { createPublicClient, createWalletClient, formatEther, http, HttpTransport, isHex } from "viem";
+import { createPublicClient, createWalletClient, http, HttpTransport, isHex } from "viem";
 import type { Address, Hex } from "viem";
 import { Oracle } from "../src";
 import { privateKeyToAccount } from "viem/accounts";
@@ -62,6 +62,11 @@ describe.only("oracle", () => {
       const response = await oracle.read(taskId);
       expect(response).toBeDefined();
       expect(response.output).toBeDefined();
+    });
+
+    it("should read task validations", async () => {
+      const validations = await oracle.getValidations(taskId);
+      expect(validations).toBeDefined();
     });
   });
 
