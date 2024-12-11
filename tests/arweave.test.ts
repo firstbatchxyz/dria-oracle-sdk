@@ -1,17 +1,18 @@
 import { readFileSync } from "fs";
-import { ArweaveKey, ArweaveStorage } from "../src/storage/arweave";
+import { ArweaveStorageKey, ArweaveStorage } from "../src/storage/arweave";
 
 // skip this unless you want to test explicitly
 describe.only("arweave", () => {
   const data = Buffer.from('"Hello, Arweave!"');
 
-  let key: ArweaveKey;
+  let key: ArweaveStorageKey;
   let arweave: ArweaveStorage;
 
   beforeAll(async () => {
     const walletPath = "./tests/secrets/testing.json";
     const wallet = JSON.parse(readFileSync(walletPath, "utf-8"));
-    arweave = new ArweaveStorage(wallet, 0);
+    arweave = new ArweaveStorage();
+    arweave.init(wallet, 0);
   });
 
   it("should get balance", async () => {

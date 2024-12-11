@@ -14,7 +14,7 @@ import {
   WalletClient,
 } from "viem";
 import type { Address, Hex, Prettify, WriteContractReturnType } from "viem";
-import { Storage } from "./storage";
+import { DecentralizedStorage } from "./storage";
 import coordinatorAbi from "./abis/coordinator";
 import {
   ChatHistoryRequest,
@@ -25,6 +25,7 @@ import {
   TaskStatus,
   TaskValidation,
 } from "./types";
+import { contractBytesToStringWithStorage, stringToContractBytesWithStorage } from "./utils";
 
 /**
  * The Oracle client is used to interact with the Dria Oracles. It allows you to make requests, read responses, and process them.
@@ -61,7 +62,7 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
       public: PublicClient<T, C>;
       wallet: WalletClient<T, C, Account>;
     },
-    readonly storage?: Storage<Buffer, K>
+    readonly storage?: DecentralizedStorage<Buffer, K>
   ) {}
 
   /**
@@ -159,8 +160,8 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
       input = JSON.stringify(input);
     }
 
-    const inputBytes = await this.stringToContractBytesWithStorage(input);
-    const modelBytes = await this.stringToContractBytesWithStorage(modelsString);
+    const inputBytes = await stringToContractBytesWithStorage(input, this.storage);
+    const modelBytes = await stringToContractBytesWithStorage(modelsString, this.storage);
     const protocolBytes = toHex(opts.protocol ?? this.protocol, { size: 32 }); // bytes32 type
 
     // make the request
@@ -226,11 +227,11 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
    * @param taskId task id
    * @returns task response with the highest score
    */
-  async getBestResponse(taskId: bigint): Promise<Prettify<TaskResponse>> {
+  async getBestResponse(taskId: bigint | number): Promise<Prettify<TaskResponse>> {
     if (this.coordinator === undefined) {
       throw new Error("SDK not initialized.");
     }
-    return await this.coordinator.read.getBestResponse([taskId]);
+    return await this.coordinator.read.getBestResponse([BigInt(taskId)]);
   }
 
   /**
@@ -238,11 +239,11 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
    * @param taskId task id
    * @returns task response
    */
-  async getValidations(taskId: bigint): Promise<readonly Prettify<TaskValidation>[]> {
+  async getValidations(taskId: bigint | number): Promise<readonly Prettify<TaskValidation>[]> {
     if (this.coordinator === undefined) {
       throw new Error("SDK not initialized.");
     }
-    return this.coordinator.read.getValidations([taskId]);
+    return this.coordinator.read.getValidations([BigInt(taskId)]);
   }
 
   /**
@@ -251,11 +252,11 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
    * @param idx index of the response, if not provided, the best & completed response is returned
    * @returns task response
    */
-  async readResponses(taskId: bigint): Promise<readonly Prettify<TaskResponse>[]> {
+  async readResponses(taskId: bigint | number): Promise<readonly Prettify<TaskResponse>[]> {
     if (this.coordinator === undefined) {
       throw new Error("SDK not initialized.");
     }
-    return await this.coordinator.read.getResponses([taskId]);
+    return await this.coordinator.read.getResponses([BigInt(taskId)]);
   }
 
   /**
@@ -264,8 +265,8 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
    * @returns response object with processed `output` and `metadata`
    */
   async processResponse(response: TaskResponse) {
-    const output = await this.contractBytesToStringWithStorage(response.output);
-    const metadata = await this.contractBytesToStringWithStorage(response.metadata);
+    const output = await contractBytesToStringWithStorage(response.output, this.storage);
+    const metadata = await contractBytesToStringWithStorage(response.metadata, this.storage);
 
     return {
       ...response,
@@ -284,7 +285,7 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
    * generations and validations be done.
    * @param taskId task id
    */
-  async wait(taskId: bigint): Promise<void> {
+  async wait(taskId: bigint | number): Promise<void> {
     if (this.coordinator === undefined) {
       throw new Error("SDK not initialized.");
     }
@@ -297,7 +298,7 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
     return new Promise<void>((resolve, reject) => {
       const unwatch = this.coordinator!.watchEvent.StatusUpdate(
         {
-          taskId,
+          taskId: BigInt(taskId),
           protocol: undefined,
         },
         {
@@ -314,7 +315,9 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
     });
   }
 
-  /** Returns the allowance of the client for the coordinator. */
+  /** Returns the allowance of the client for the coordinator.
+   * @returns allowance amount
+   */
   async allowance(): Promise<bigint> {
     if (this.token === undefined) {
       throw new Error("SDK not initialized.");
@@ -338,56 +341,6 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
       chain: this.client.wallet.chain,
       account: this.client.wallet.account,
     });
-  }
-
-  /**
-   * Given a string, converts it to a `Hex` string and then:
-   * - If `storage` is given, uploads the string to the storage if its large enough and returns the key
-   * - Otherwise, returns the `Hex` string, equivalent to a `bytes` type in Solidity.
-   *
-   * @param bytes input string
-   * @returns a `Hex` string, with 0x prefix
-   */
-  async stringToContractBytesWithStorage(input: string): Promise<Hex> {
-    const inputBytes = stringToBytes(input);
-    if (this.storage && inputBytes.length > this.storage.bytesLimit) {
-      const key = await this.storage.put(Buffer.from(input));
-      return `0x${Buffer.from(JSON.stringify(key)).toString("hex")}`;
-    } else {
-      return `0x${Buffer.from(inputBytes).toString("hex")}`;
-    }
-  }
-
-  /**
-   * Given a `bytes` Solidity type, converts it to a string:
-   * - If `storage` is given, downloads the string from storage if it is matching a key.
-   * - Otherwise, converts the bytes to a string.
-   *
-   * If no value is found at the storage, it returns `null`.
-   *
-   * @param input bytes
-   * @param storage decentralized storage, optional
-   * @returns parsed string
-   */
-  async contractBytesToStringWithStorage(input: Hex): Promise<string | null> {
-    const inputStr = bytesToString(Buffer.from(input.slice(2), "hex"));
-
-    if (this.storage) {
-      // check if input is a key
-      const key = this.storage.isKey(inputStr);
-      if (key == null) {
-        return inputStr;
-      }
-
-      // fetch data
-      const data = await this.storage.get(key);
-      if (data == null) {
-        return null;
-      }
-      return data.toString();
-    } else {
-      return inputStr;
-    }
   }
 }
 

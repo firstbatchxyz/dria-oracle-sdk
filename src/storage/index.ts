@@ -3,13 +3,13 @@
  * @template T The type of the data to store.
  * @template K The type of the key to use.
  */
-export interface Storage<T = unknown, K = string> {
+export interface DecentralizedStorage<T = unknown, K = string> {
   /** The number of bytes, after which storage shall be considered. */
   bytesLimit: number;
 
   /**
    * @param key The key to get the value for.
-   * @returns The value at the key, or null if it does not exist.
+   * @returns The value at the key, or `null` if it does not exist.
    */
   get(key: K): Promise<T | null>;
 
