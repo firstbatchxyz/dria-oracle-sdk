@@ -18,6 +18,8 @@ import {
   ChatHistoryRequest,
   ChatHistoryResponse,
   RequestModels,
+  RequestOpts,
+  RequestReturnType,
   TaskParameters,
   TaskResponse,
   TaskStatus,
@@ -145,17 +147,17 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
    * @param opts optional request arguments, such as `protocol` and `taskParameters`
    * @returns task transaction hash
    */
-  async request(input: string, models: RequestModels, opts?: RequestOpts): Promise<WriteContractReturnType>;
+  async request(input: string, models: RequestModels, opts?: RequestOpts): Promise<RequestReturnType>;
   async request(
     input: Prettify<ChatHistoryRequest>,
     models: RequestModels,
     opts?: RequestOpts
-  ): Promise<WriteContractReturnType>;
+  ): Promise<RequestReturnType>;
   async request(
     input: string | Prettify<ChatHistoryRequest>,
     models: RequestModels = "*",
     opts: RequestOpts = {}
-  ): Promise<WriteContractReturnType> {
+  ): Promise<RequestReturnType> {
     if (this.coordinator === undefined) {
       throw new Error("SDK not initialized.");
     }
@@ -179,13 +181,23 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
 
     const inputBytes = await stringToContractBytesWithStorage(input, this.storage);
     const modelBytes = await stringToContractBytesWithStorage(modelsString, this.storage);
-    const protocolBytes = toHex(opts.protocol ?? this.protocol, { size: 32 }); // bytes32 type
+
+    const protocol = opts.protocol ?? this.protocol;
+    const protocolBytes = toHex(protocol, { size: 32 }); // bytes32 type
 
     // make the request
-    return await this.coordinator.write.request([protocolBytes, inputBytes, modelBytes, taskParameters], {
+    const txHash = await this.coordinator.write.request([protocolBytes, inputBytes, modelBytes, taskParameters], {
       chain: this.client.wallet.chain,
       account: this.client.wallet.account,
     });
+
+    return {
+      txHash,
+      protocol,
+      input,
+      models,
+      taskParameters,
+    };
   }
 
   /**
@@ -382,9 +394,3 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
     });
   }
 }
-
-/** Optional arguments for `request`. */
-type RequestOpts = {
-  taskParameters?: Partial<TaskParameters>;
-  protocol?: string;
-};

@@ -1,3 +1,3 @@
 export * from "./model";
-export * from "./chat";
+export * from "./request";
 export * from "./task";

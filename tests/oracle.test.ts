@@ -43,7 +43,9 @@ describe.only("oracle", () => {
     let taskId: bigint;
 
     it("should request a task", async () => {
-      requestTxHash = await oracle.request("What is 2+2?", "*");
+      const { txHash } = await oracle.request("What is 2+2?", "*");
+      requestTxHash = txHash;
+
       expect(isHex(requestTxHash)).toBeTruthy();
       console.log({ requestTxHash });
     });
@@ -74,7 +76,9 @@ describe.only("oracle", () => {
     let taskId: bigint;
 
     it("should start a new chat session", async () => {
-      requestTxHash = await oracle.request({ history_id: 0, content: "What is 2+2?" }, "*");
+      const { txHash } = await oracle.request({ history_id: 0, content: "What is 2+2?" }, "*");
+      requestTxHash = txHash;
+
       expect(isHex(requestTxHash)).toBeTruthy();
       console.log({ requestTxHash });
     });
@@ -98,13 +102,15 @@ describe.only("oracle", () => {
     });
 
     it("should continue a chat", async () => {
-      requestTxHash = await oracle.request(
+      const { txHash } = await oracle.request(
         {
           history_id: taskId,
           content: "What is the square of the number that is the answer to previous question?",
         },
         "*"
       );
+      requestTxHash = txHash;
+
       expect(isHex(requestTxHash)).toBeTruthy();
       console.log({ requestTxHash });
     });
