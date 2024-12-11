@@ -10,7 +10,7 @@
   "description": "",
   "dependencies": {
     "dotenv": "^16.4.7",
-    "dria-oracle-sdk": "^0.0.4",
+    "dria-oracle-sdk": "^0.0.5",
     "viem": "^2.21.54"
   }
 }

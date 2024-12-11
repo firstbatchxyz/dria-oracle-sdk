@@ -53,7 +53,7 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
   public token?: ReturnType<InstanceType<typeof Oracle<Transport, Chain, K>>["Token"]>;
 
   // defaults
-  public taskParameters: TaskParameters = { difficulty: 2, numGenerations: 1, numValidations: 1 };
+  public taskParameters: TaskParameters = { difficulty: 2, numGenerations: 2, numValidations: 2 };
   public protocol = "oracle-js-sdk/0.1.0";
 
   constructor(
@@ -159,6 +159,13 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
     if (this.coordinator === undefined) {
       throw new Error("SDK not initialized.");
     }
+
+    // check task parameter
+    const taskParameters = { ...this.taskParameters, ...opts.taskParameters };
+    if (taskParameters.numValidations !== 0 && taskParameters.numGenerations === 1) {
+      throw new Error("numGenerations must be greater than 1 when numValidations is not 0.");
+    }
+
     // models are comma-separated
     const modelsString = Array.isArray(models) ? models.join(",") : (models as string);
     if (typeof input !== "string") {
@@ -175,10 +182,10 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
     const protocolBytes = toHex(opts.protocol ?? this.protocol, { size: 32 }); // bytes32 type
 
     // make the request
-    return await this.coordinator.write.request(
-      [protocolBytes, inputBytes, modelBytes, { ...this.taskParameters, ...opts.taskParameters }],
-      { chain: this.client.wallet.chain, account: this.client.wallet.account }
-    );
+    return await this.coordinator.write.request([protocolBytes, inputBytes, modelBytes, taskParameters], {
+      chain: this.client.wallet.chain,
+      account: this.client.wallet.account,
+    });
   }
 
   /**

@@ -1,3 +1,4 @@
+// Usage: node example/index.mjs
 import "dotenv/config";
 import { createPublicClient, createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
@@ -38,7 +39,8 @@ async function main() {
   const model = "*";
   const requestTxHash = await oracle.request(input, model, {
     taskParameters: {
-      numValidations: 0,
+      numValidations: 2,
+      numGenerations: 2,
     },
   });
   const taskId = await oracle.waitRequest(requestTxHash);
@@ -48,11 +50,16 @@ async function main() {
 
   // read best result
   const response = await oracle.read(taskId);
+  console.log("Response:");
   console.log({ response });
 
   // read validations
   const validations = await oracle.getValidations(taskId);
-  console.log({ validations });
+  console.log("Validations:");
+  for (const validationRaw of validations) {
+    const validation = await oracle.processValidation(validationRaw);
+    console.log({ validation });
+  }
 }
 
 main().catch(console.error);
