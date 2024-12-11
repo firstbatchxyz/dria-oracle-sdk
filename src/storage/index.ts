@@ -1,5 +1,7 @@
 /**
  * A key-value storage that can be used to store arbitrary data in a decentralized-storage fashion.
+ * Most often, the `T` is a `Buffer` and `K` is anything custom defined.
+ *
  * @template T The type of the data to store.
  * @template K The type of the key to use.
  */

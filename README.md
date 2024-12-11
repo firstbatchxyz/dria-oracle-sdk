@@ -100,6 +100,10 @@ const response = await oracle.read(taskId);
 const { output, metadata } = response;
 ```
 
+TODO: describe parsing
+
+TODO: describe validations
+
 ## Testing
 
 Tests use the live environment, so make sure you have some balance in your wallets. To run them:
