@@ -1,6 +1,5 @@
 import {
   Account,
-  bytesToString,
   Chain,
   erc20Abi,
   getContract,
@@ -8,7 +7,6 @@ import {
   parseAbi,
   parseEventLogs,
   PublicClient,
-  stringToBytes,
   toHex,
   Transport,
   WalletClient,
@@ -24,6 +22,7 @@ import {
   TaskResponse,
   TaskStatus,
   TaskValidation,
+  TaskValidationScores,
 } from "./types";
 import { contractBytesToStringWithStorage, stringToContractBytesWithStorage } from "./utils";
 
@@ -132,6 +131,8 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
    * - `*` for all models
    * - `!` for first model of the responder
    * - `["model1", "model2", ...]` for specific models
+   *
+   * (defaults to `*`)
    * @param opts optional request arguments, such as `protocol` and `taskParameters`
    * @returns task transaction hash
    */
@@ -143,7 +144,7 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
   ): Promise<WriteContractReturnType>;
   async request(
     input: string | Prettify<ChatHistoryRequest>,
-    models: RequestModels,
+    models: RequestModels = "*",
     opts: RequestOpts = {}
   ): Promise<WriteContractReturnType> {
     if (this.coordinator === undefined) {
@@ -172,18 +173,7 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
   }
 
   /**
-   * Alias for `getBestResponse` followed by `processResponse`.
-   * @param taskId task id
-   * @param kind task kind, e.g. `chat` for conversational models
-   * @returns processed task response
-   */
-  async read(taskId: bigint) {
-    const response = await this.getBestResponse(taskId);
-    return this.processResponse(response);
-  }
-
-  /**
-   *
+   * Waits until the request transaction is mined and returns the task id.
    * @param txHash transaction hash for the request (see `request`)
    * @returns taskId
    */
@@ -203,12 +193,24 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
   }
 
   /**
+   * Alias for `getBestResponse` followed by `processResponse`.
+   * @param taskId task id
+   * @param kind task kind, e.g. `chat` for conversational models
+   * @returns processed task response
+   */
+  async read(taskId: bigint) {
+    const response = await this.getBestResponse(taskId);
+    return this.processResponse(response);
+  }
+
+  /**
    * Returns a boolean indicating if the task is completed.
    * @param taskId task id
    * @returns true if the task is completed, or `taskId` is 0
    */
   async isCompleted(taskId: bigint | number): Promise<boolean> {
     // 0 is always accepted
+    // TODO: explain why
     if (BigInt(taskId) === 0n) {
       return true;
     }
@@ -223,7 +225,6 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
   /**
    * Returns the highest scored response of a task.
    * Will throw an error if the task is not completed yet!
-   *
    * @param taskId task id
    * @returns task response with the highest score
    */
@@ -237,7 +238,7 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
   /**
    * Reads the request of a task.
    * @param taskId task id
-   * @returns task response
+   * @returns task validations
    */
   async getValidations(taskId: bigint | number): Promise<readonly Prettify<TaskValidation>[]> {
     if (this.coordinator === undefined) {
@@ -264,15 +265,45 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
    * @param response existing response object
    * @returns response object with processed `output` and `metadata`
    */
-  async processResponse(response: TaskResponse) {
+  async processResponse(response: TaskResponse): Promise<TaskResponse<string, string>> {
     const output = await contractBytesToStringWithStorage(response.output, this.storage);
+    if (!output) {
+      throw new Error("Output not found in storage.");
+    }
+
     const metadata = await contractBytesToStringWithStorage(response.metadata, this.storage);
+    if (!metadata) {
+      throw new Error("Metadata not found in storage.");
+    }
 
     return {
       ...response,
       output,
       metadata,
     };
+  }
+
+  /**
+   * Process the `metadata` of a task, with respect to the given storage.
+   * @param response existing validation object
+   * @returns validation object with processed `metadata`
+   */
+  async processValidation(validation: TaskValidation): Promise<TaskValidation<TaskValidationScores[]>> {
+    const metadata = await contractBytesToStringWithStorage(validation.metadata, this.storage);
+    if (!metadata) {
+      throw new Error("Metadata not found in storage.");
+    }
+
+    try {
+      const validationScores = JSON.parse(metadata) as TaskValidationScores[];
+      return {
+        ...validation,
+        metadata: validationScores,
+      };
+    } catch (err) {
+      console.error("Error parsing metadata:", err);
+      throw err;
+    }
   }
 
   /** Shorthand to parse a string to a chat history response. */

@@ -1,1097 +1,729 @@
 export default [
+  { type: "constructor", inputs: [], stateMutability: "nonpayable" },
   {
-    inputs: [],
-    stateMutability: "nonpayable",
-    type: "constructor",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "target",
-        type: "address",
-      },
-    ],
-    name: "AddressEmptyCode",
-    type: "error",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "taskId",
-        type: "uint256",
-      },
-      {
-        internalType: "address",
-        name: "oracle",
-        type: "address",
-      },
-    ],
-    name: "AlreadyResponded",
-    type: "error",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "implementation",
-        type: "address",
-      },
-    ],
-    name: "ERC1967InvalidImplementation",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "ERC1967NonPayable",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "FailedInnerCall",
-    type: "error",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "have",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "want",
-        type: "uint256",
-      },
-    ],
-    name: "InsufficientFees",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "InvalidInitialization",
-    type: "error",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "taskId",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "nonce",
-        type: "uint256",
-      },
-    ],
-    name: "InvalidNonce",
-    type: "error",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "have",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "min",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "max",
-        type: "uint256",
-      },
-    ],
-    name: "InvalidParameterRange",
-    type: "error",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "taskId",
-        type: "uint256",
-      },
-      {
-        internalType: "enum LLMOracleTask.TaskStatus",
-        name: "have",
-        type: "uint8",
-      },
-      {
-        internalType: "enum LLMOracleTask.TaskStatus",
-        name: "want",
-        type: "uint8",
-      },
-    ],
-    name: "InvalidTaskStatus",
-    type: "error",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "taskId",
-        type: "uint256",
-      },
-      {
-        internalType: "address",
-        name: "validator",
-        type: "address",
-      },
-    ],
-    name: "InvalidValidation",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "NotInitializing",
-    type: "error",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "oracle",
-        type: "address",
-      },
-    ],
-    name: "NotRegistered",
-    type: "error",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "owner",
-        type: "address",
-      },
-    ],
-    name: "OwnableInvalidOwner",
-    type: "error",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "account",
-        type: "address",
-      },
-    ],
-    name: "OwnableUnauthorizedAccount",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "UUPSUnauthorizedCallContext",
-    type: "error",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes32",
-        name: "slot",
-        type: "bytes32",
-      },
-    ],
-    name: "UUPSUnsupportedProxiableUUID",
-    type: "error",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "uint64",
-        name: "version",
-        type: "uint64",
-      },
-    ],
-    name: "Initialized",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "previousOwner",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "newOwner",
-        type: "address",
-      },
-    ],
-    name: "OwnershipTransferred",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "uint256",
-        name: "taskId",
-        type: "uint256",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "requester",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "bytes32",
-        name: "protocol",
-        type: "bytes32",
-      },
-    ],
-    name: "Request",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "uint256",
-        name: "taskId",
-        type: "uint256",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "responder",
-        type: "address",
-      },
-    ],
-    name: "Response",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "uint256",
-        name: "taskId",
-        type: "uint256",
-      },
-      {
-        indexed: true,
-        internalType: "bytes32",
-        name: "protocol",
-        type: "bytes32",
-      },
-      {
-        indexed: false,
-        internalType: "enum LLMOracleTask.TaskStatus",
-        name: "statusBefore",
-        type: "uint8",
-      },
-      {
-        indexed: false,
-        internalType: "enum LLMOracleTask.TaskStatus",
-        name: "statusAfter",
-        type: "uint8",
-      },
-    ],
-    name: "StatusUpdate",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "implementation",
-        type: "address",
-      },
-    ],
-    name: "Upgraded",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "uint256",
-        name: "taskId",
-        type: "uint256",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "validator",
-        type: "address",
-      },
-    ],
-    name: "Validation",
-    type: "event",
-  },
-  {
-    inputs: [],
+    type: "function",
     name: "UPGRADE_INTERFACE_VERSION",
-    outputs: [
-      {
-        internalType: "string",
-        name: "",
-        type: "string",
-      },
-    ],
+    inputs: [],
+    outputs: [{ name: "", type: "string", internalType: "string" }],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "feeToken",
-    outputs: [
-      {
-        internalType: "contract ERC20",
-        name: "",
-        type: "address",
-      },
-    ],
+    inputs: [],
+    outputs: [{ name: "", type: "address", internalType: "contract ERC20" }],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "generationDeviationFactor",
-    outputs: [
-      {
-        internalType: "uint64",
-        name: "",
-        type: "uint64",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
     inputs: [],
-    name: "generationFee",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
+    outputs: [{ name: "", type: "uint64", internalType: "uint64" }],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "taskId",
-        type: "uint256",
-      },
-    ],
+    type: "function",
+    name: "generationFee",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "getBestResponse",
+    inputs: [{ name: "taskId", type: "uint256", internalType: "uint256" }],
     outputs: [
       {
-        components: [
-          {
-            internalType: "address",
-            name: "responder",
-            type: "address",
-          },
-          {
-            internalType: "uint256",
-            name: "nonce",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "score",
-            type: "uint256",
-          },
-          {
-            internalType: "bytes",
-            name: "output",
-            type: "bytes",
-          },
-          {
-            internalType: "bytes",
-            name: "metadata",
-            type: "bytes",
-          },
-        ],
-        internalType: "struct LLMOracleTask.TaskResponse",
         name: "",
         type: "tuple",
+        internalType: "struct LLMOracleTask.TaskResponse",
+        components: [
+          {
+            name: "responder",
+            type: "address",
+            internalType: "address",
+          },
+          { name: "nonce", type: "uint256", internalType: "uint256" },
+          { name: "score", type: "uint256", internalType: "uint256" },
+          { name: "output", type: "bytes", internalType: "bytes" },
+          { name: "metadata", type: "bytes", internalType: "bytes" },
+        ],
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "getFee",
     inputs: [
       {
-        components: [
-          {
-            internalType: "uint8",
-            name: "difficulty",
-            type: "uint8",
-          },
-          {
-            internalType: "uint40",
-            name: "numGenerations",
-            type: "uint40",
-          },
-          {
-            internalType: "uint40",
-            name: "numValidations",
-            type: "uint40",
-          },
-        ],
-        internalType: "struct LLMOracleTaskParameters",
         name: "parameters",
         type: "tuple",
-      },
-    ],
-    name: "getFee",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "totalFee",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "generatorFee",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "validatorFee",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "taskId",
-        type: "uint256",
-      },
-    ],
-    name: "getResponses",
-    outputs: [
-      {
+        internalType: "struct LLMOracleTaskParameters",
         components: [
+          { name: "difficulty", type: "uint8", internalType: "uint8" },
           {
-            internalType: "address",
-            name: "responder",
-            type: "address",
+            name: "numGenerations",
+            type: "uint40",
+            internalType: "uint40",
           },
           {
-            internalType: "uint256",
-            name: "nonce",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "score",
-            type: "uint256",
-          },
-          {
-            internalType: "bytes",
-            name: "output",
-            type: "bytes",
-          },
-          {
-            internalType: "bytes",
-            name: "metadata",
-            type: "bytes",
+            name: "numValidations",
+            type: "uint40",
+            internalType: "uint40",
           },
         ],
-        internalType: "struct LLMOracleTask.TaskResponse[]",
+      },
+    ],
+    outputs: [
+      { name: "totalFee", type: "uint256", internalType: "uint256" },
+      {
+        name: "generatorFee",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      { name: "validatorFee", type: "uint256", internalType: "uint256" },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getResponses",
+    inputs: [{ name: "taskId", type: "uint256", internalType: "uint256" }],
+    outputs: [
+      {
         name: "",
         type: "tuple[]",
+        internalType: "struct LLMOracleTask.TaskResponse[]",
+        components: [
+          {
+            name: "responder",
+            type: "address",
+            internalType: "address",
+          },
+          { name: "nonce", type: "uint256", internalType: "uint256" },
+          { name: "score", type: "uint256", internalType: "uint256" },
+          { name: "output", type: "bytes", internalType: "bytes" },
+          { name: "metadata", type: "bytes", internalType: "bytes" },
+        ],
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "taskId",
-        type: "uint256",
-      },
-    ],
+    type: "function",
     name: "getValidations",
+    inputs: [{ name: "taskId", type: "uint256", internalType: "uint256" }],
     outputs: [
       {
+        name: "",
+        type: "tuple[]",
+        internalType: "struct LLMOracleTask.TaskValidation[]",
         components: [
           {
-            internalType: "address",
             name: "validator",
             type: "address",
+            internalType: "address",
           },
+          { name: "nonce", type: "uint256", internalType: "uint256" },
           {
-            internalType: "uint256",
-            name: "nonce",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256[]",
             name: "scores",
             type: "uint256[]",
+            internalType: "uint256[]",
           },
-          {
-            internalType: "bytes",
-            name: "metadata",
-            type: "bytes",
-          },
+          { name: "metadata", type: "bytes", internalType: "bytes" },
         ],
-        internalType: "struct LLMOracleTask.TaskValidation[]",
-        name: "",
-        type: "tuple[]",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "initialize",
     inputs: [
       {
-        internalType: "address",
         name: "_oracleRegistry",
         type: "address",
-      },
-      {
         internalType: "address",
-        name: "_feeToken",
-        type: "address",
       },
+      { name: "_feeToken", type: "address", internalType: "address" },
       {
-        internalType: "uint256",
         name: "_platformFee",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "_generationFee",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "_validationFee",
         type: "uint256",
+        internalType: "uint256",
       },
+      { name: "_minScore", type: "uint256", internalType: "uint256" },
+      { name: "_maxScore", type: "uint256", internalType: "uint256" },
     ],
-    name: "initialize",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "maxScore",
     inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "minScore",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "nextTaskId",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "owner",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
+    inputs: [],
+    outputs: [{ name: "", type: "address", internalType: "address" }],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "platformFee",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "platformFeeBalance",
     inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "proxiableUUID",
-    outputs: [
-      {
-        internalType: "bytes32",
-        name: "",
-        type: "bytes32",
-      },
-    ],
+    inputs: [],
+    outputs: [{ name: "", type: "bytes32", internalType: "bytes32" }],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "registry",
+    inputs: [],
     outputs: [
       {
-        internalType: "contract LLMOracleRegistry",
         name: "",
         type: "address",
+        internalType: "contract LLMOracleRegistry",
       },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [],
+    type: "function",
     name: "renounceOwnership",
+    inputs: [],
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "bytes32",
-        name: "protocol",
-        type: "bytes32",
-      },
-      {
-        internalType: "bytes",
-        name: "input",
-        type: "bytes",
-      },
-      {
-        internalType: "bytes",
-        name: "models",
-        type: "bytes",
-      },
-      {
-        components: [
-          {
-            internalType: "uint8",
-            name: "difficulty",
-            type: "uint8",
-          },
-          {
-            internalType: "uint40",
-            name: "numGenerations",
-            type: "uint40",
-          },
-          {
-            internalType: "uint40",
-            name: "numValidations",
-            type: "uint40",
-          },
-        ],
-        internalType: "struct LLMOracleTaskParameters",
-        name: "parameters",
-        type: "tuple",
-      },
-    ],
+    type: "function",
     name: "request",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
     inputs: [
+      { name: "protocol", type: "bytes32", internalType: "bytes32" },
+      { name: "input", type: "bytes", internalType: "bytes" },
+      { name: "models", type: "bytes", internalType: "bytes" },
       {
-        internalType: "uint256",
-        name: "taskId",
-        type: "uint256",
-      },
-    ],
-    name: "requests",
-    outputs: [
-      {
-        internalType: "address",
-        name: "requester",
-        type: "address",
-      },
-      {
-        internalType: "bytes32",
-        name: "protocol",
-        type: "bytes32",
-      },
-      {
-        components: [
-          {
-            internalType: "uint8",
-            name: "difficulty",
-            type: "uint8",
-          },
-          {
-            internalType: "uint40",
-            name: "numGenerations",
-            type: "uint40",
-          },
-          {
-            internalType: "uint40",
-            name: "numValidations",
-            type: "uint40",
-          },
-        ],
-        internalType: "struct LLMOracleTaskParameters",
         name: "parameters",
         type: "tuple",
+        internalType: "struct LLMOracleTaskParameters",
+        components: [
+          { name: "difficulty", type: "uint8", internalType: "uint8" },
+          {
+            name: "numGenerations",
+            type: "uint40",
+            internalType: "uint40",
+          },
+          {
+            name: "numValidations",
+            type: "uint40",
+            internalType: "uint40",
+          },
+        ],
+      },
+    ],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "requests",
+    inputs: [{ name: "taskId", type: "uint256", internalType: "uint256" }],
+    outputs: [
+      { name: "requester", type: "address", internalType: "address" },
+      { name: "protocol", type: "bytes32", internalType: "bytes32" },
+      {
+        name: "parameters",
+        type: "tuple",
+        internalType: "struct LLMOracleTaskParameters",
+        components: [
+          { name: "difficulty", type: "uint8", internalType: "uint8" },
+          {
+            name: "numGenerations",
+            type: "uint40",
+            internalType: "uint40",
+          },
+          {
+            name: "numValidations",
+            type: "uint40",
+            internalType: "uint40",
+          },
+        ],
       },
       {
-        internalType: "enum LLMOracleTask.TaskStatus",
         name: "status",
         type: "uint8",
+        internalType: "enum LLMOracleTask.TaskStatus",
       },
       {
-        internalType: "uint256",
         name: "generatorFee",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "validatorFee",
         type: "uint256",
-      },
-      {
         internalType: "uint256",
-        name: "platformFee",
-        type: "uint256",
       },
-      {
-        internalType: "bytes",
-        name: "input",
-        type: "bytes",
-      },
-      {
-        internalType: "bytes",
-        name: "models",
-        type: "bytes",
-      },
+      { name: "platformFee", type: "uint256", internalType: "uint256" },
+      { name: "input", type: "bytes", internalType: "bytes" },
+      { name: "models", type: "bytes", internalType: "bytes" },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "taskId",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "nonce",
-        type: "uint256",
-      },
-      {
-        internalType: "bytes",
-        name: "output",
-        type: "bytes",
-      },
-      {
-        internalType: "bytes",
-        name: "metadata",
-        type: "bytes",
-      },
-    ],
+    type: "function",
     name: "respond",
+    inputs: [
+      { name: "taskId", type: "uint256", internalType: "uint256" },
+      { name: "nonce", type: "uint256", internalType: "uint256" },
+      { name: "output", type: "bytes", internalType: "bytes" },
+      { name: "metadata", type: "bytes", internalType: "bytes" },
+    ],
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "taskId",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
+    type: "function",
     name: "responses",
+    inputs: [
+      { name: "taskId", type: "uint256", internalType: "uint256" },
+      { name: "", type: "uint256", internalType: "uint256" },
+    ],
     outputs: [
-      {
-        internalType: "address",
-        name: "responder",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "nonce",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "score",
-        type: "uint256",
-      },
-      {
-        internalType: "bytes",
-        name: "output",
-        type: "bytes",
-      },
-      {
-        internalType: "bytes",
-        name: "metadata",
-        type: "bytes",
-      },
+      { name: "responder", type: "address", internalType: "address" },
+      { name: "nonce", type: "uint256", internalType: "uint256" },
+      { name: "score", type: "uint256", internalType: "uint256" },
+      { name: "output", type: "bytes", internalType: "bytes" },
+      { name: "metadata", type: "bytes", internalType: "bytes" },
     ],
     stateMutability: "view",
-    type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "uint64",
-        name: "_generationDeviationFactor",
-        type: "uint64",
-      },
-      {
-        internalType: "uint64",
-        name: "_validationDeviationFactor",
-        type: "uint64",
-      },
-    ],
-    name: "setDeviationFactors",
-    outputs: [],
-    stateMutability: "nonpayable",
     type: "function",
-  },
-  {
+    name: "setFees",
     inputs: [
       {
-        internalType: "uint256",
         name: "_platformFee",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "_generationFee",
         type: "uint256",
+        internalType: "uint256",
       },
       {
-        internalType: "uint256",
         name: "_validationFee",
         type: "uint256",
+        internalType: "uint256",
       },
     ],
-    name: "setFees",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "setGenerationDeviationFactor",
     inputs: [
       {
-        components: [
-          {
-            internalType: "uint8",
-            name: "difficulty",
-            type: "uint8",
-          },
-          {
-            internalType: "uint40",
-            name: "numGenerations",
-            type: "uint40",
-          },
-          {
-            internalType: "uint40",
-            name: "numValidations",
-            type: "uint40",
-          },
-        ],
-        internalType: "struct LLMOracleTaskParameters",
+        name: "_generationDeviationFactor",
+        type: "uint64",
+        internalType: "uint64",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "setParameters",
+    inputs: [
+      {
         name: "minimums",
         type: "tuple",
-      },
-      {
+        internalType: "struct LLMOracleTaskParameters",
         components: [
+          { name: "difficulty", type: "uint8", internalType: "uint8" },
           {
-            internalType: "uint8",
-            name: "difficulty",
-            type: "uint8",
-          },
-          {
-            internalType: "uint40",
             name: "numGenerations",
             type: "uint40",
+            internalType: "uint40",
           },
           {
-            internalType: "uint40",
             name: "numValidations",
             type: "uint40",
+            internalType: "uint40",
           },
         ],
-        internalType: "struct LLMOracleTaskParameters",
+      },
+      {
         name: "maximums",
         type: "tuple",
+        internalType: "struct LLMOracleTaskParameters",
+        components: [
+          { name: "difficulty", type: "uint8", internalType: "uint8" },
+          {
+            name: "numGenerations",
+            type: "uint40",
+            internalType: "uint40",
+          },
+          {
+            name: "numValidations",
+            type: "uint40",
+            internalType: "uint40",
+          },
+        ],
       },
     ],
-    name: "setParameters",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "address",
-        name: "newOwner",
-        type: "address",
-      },
-    ],
+    type: "function",
     name: "transferOwnership",
+    inputs: [{ name: "newOwner", type: "address", internalType: "address" }],
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
+    type: "function",
+    name: "upgradeToAndCall",
     inputs: [
       {
-        internalType: "address",
         name: "newImplementation",
         type: "address",
+        internalType: "address",
       },
-      {
-        internalType: "bytes",
-        name: "data",
-        type: "bytes",
-      },
+      { name: "data", type: "bytes", internalType: "bytes" },
     ],
-    name: "upgradeToAndCall",
     outputs: [],
     stateMutability: "payable",
-    type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "taskId",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "nonce",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256[]",
-        name: "scores",
-        type: "uint256[]",
-      },
-      {
-        internalType: "bytes",
-        name: "metadata",
-        type: "bytes",
-      },
-    ],
+    type: "function",
     name: "validate",
+    inputs: [
+      { name: "taskId", type: "uint256", internalType: "uint256" },
+      { name: "nonce", type: "uint256", internalType: "uint256" },
+      { name: "scores", type: "uint256[]", internalType: "uint256[]" },
+      { name: "metadata", type: "bytes", internalType: "bytes" },
+    ],
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
   },
   {
-    inputs: [],
-    name: "validationDeviationFactor",
-    outputs: [
-      {
-        internalType: "uint64",
-        name: "",
-        type: "uint64",
-      },
-    ],
-    stateMutability: "view",
     type: "function",
-  },
-  {
-    inputs: [],
     name: "validationFee",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
-    type: "function",
   },
   {
+    type: "function",
+    name: "validations",
+    inputs: [
+      { name: "taskId", type: "uint256", internalType: "uint256" },
+      { name: "", type: "uint256", internalType: "uint256" },
+    ],
+    outputs: [
+      { name: "validator", type: "address", internalType: "address" },
+      { name: "nonce", type: "uint256", internalType: "uint256" },
+      { name: "metadata", type: "bytes", internalType: "bytes" },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "withdrawPlatformFees",
+    inputs: [],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "event",
+    name: "Initialized",
     inputs: [
       {
-        internalType: "uint256",
-        name: "taskId",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
+        name: "version",
+        type: "uint64",
+        indexed: false,
+        internalType: "uint64",
       },
     ],
-    name: "validations",
-    outputs: [
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "OwnershipTransferred",
+    inputs: [
       {
+        name: "previousOwner",
+        type: "address",
+        indexed: true,
         internalType: "address",
+      },
+      {
+        name: "newOwner",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "Request",
+    inputs: [
+      {
+        name: "taskId",
+        type: "uint256",
+        indexed: true,
+        internalType: "uint256",
+      },
+      {
+        name: "requester",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "protocol",
+        type: "bytes32",
+        indexed: true,
+        internalType: "bytes32",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "Response",
+    inputs: [
+      {
+        name: "taskId",
+        type: "uint256",
+        indexed: true,
+        internalType: "uint256",
+      },
+      {
+        name: "responder",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "StatusUpdate",
+    inputs: [
+      {
+        name: "taskId",
+        type: "uint256",
+        indexed: true,
+        internalType: "uint256",
+      },
+      {
+        name: "protocol",
+        type: "bytes32",
+        indexed: true,
+        internalType: "bytes32",
+      },
+      {
+        name: "statusBefore",
+        type: "uint8",
+        indexed: false,
+        internalType: "enum LLMOracleTask.TaskStatus",
+      },
+      {
+        name: "statusAfter",
+        type: "uint8",
+        indexed: false,
+        internalType: "enum LLMOracleTask.TaskStatus",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "Upgraded",
+    inputs: [
+      {
+        name: "implementation",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "Validation",
+    inputs: [
+      {
+        name: "taskId",
+        type: "uint256",
+        indexed: true,
+        internalType: "uint256",
+      },
+      {
         name: "validator",
         type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "nonce",
-        type: "uint256",
-      },
-      {
-        internalType: "bytes",
-        name: "metadata",
-        type: "bytes",
+        indexed: true,
+        internalType: "address",
       },
     ],
-    stateMutability: "view",
-    type: "function",
+    anonymous: false,
   },
   {
-    inputs: [],
-    name: "withdrawPlatformFees",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
+    type: "error",
+    name: "AddressEmptyCode",
+    inputs: [{ name: "target", type: "address", internalType: "address" }],
+  },
+  {
+    type: "error",
+    name: "AlreadyResponded",
+    inputs: [
+      { name: "taskId", type: "uint256", internalType: "uint256" },
+      { name: "oracle", type: "address", internalType: "address" },
+    ],
+  },
+  { type: "error", name: "ComputeError", inputs: [] },
+  {
+    type: "error",
+    name: "ERC1967InvalidImplementation",
+    inputs: [
+      {
+        name: "implementation",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+  },
+  { type: "error", name: "ERC1967NonPayable", inputs: [] },
+  { type: "error", name: "FailedCall", inputs: [] },
+  {
+    type: "error",
+    name: "InsufficientFees",
+    inputs: [
+      { name: "have", type: "uint256", internalType: "uint256" },
+      { name: "want", type: "uint256", internalType: "uint256" },
+    ],
+  },
+  { type: "error", name: "InvalidInitialization", inputs: [] },
+  { type: "error", name: "InvalidInput", inputs: [] },
+  {
+    type: "error",
+    name: "InvalidNonce",
+    inputs: [
+      { name: "taskId", type: "uint256", internalType: "uint256" },
+      { name: "nonce", type: "uint256", internalType: "uint256" },
+    ],
+  },
+  {
+    type: "error",
+    name: "InvalidParameterRange",
+    inputs: [
+      { name: "have", type: "uint256", internalType: "uint256" },
+      { name: "min", type: "uint256", internalType: "uint256" },
+      { name: "max", type: "uint256", internalType: "uint256" },
+    ],
+  },
+  {
+    type: "error",
+    name: "InvalidTaskStatus",
+    inputs: [
+      { name: "taskId", type: "uint256", internalType: "uint256" },
+      {
+        name: "have",
+        type: "uint8",
+        internalType: "enum LLMOracleTask.TaskStatus",
+      },
+      {
+        name: "want",
+        type: "uint8",
+        internalType: "enum LLMOracleTask.TaskStatus",
+      },
+    ],
+  },
+  {
+    type: "error",
+    name: "InvalidValidation",
+    inputs: [
+      { name: "taskId", type: "uint256", internalType: "uint256" },
+      { name: "validator", type: "address", internalType: "address" },
+    ],
+  },
+  { type: "error", name: "NotInitializing", inputs: [] },
+  {
+    type: "error",
+    name: "NotRegistered",
+    inputs: [{ name: "oracle", type: "address", internalType: "address" }],
+  },
+  {
+    type: "error",
+    name: "NotWhitelisted",
+    inputs: [{ name: "validator", type: "address", internalType: "address" }],
+  },
+  {
+    type: "error",
+    name: "OwnableInvalidOwner",
+    inputs: [{ name: "owner", type: "address", internalType: "address" }],
+  },
+  {
+    type: "error",
+    name: "OwnableUnauthorizedAccount",
+    inputs: [{ name: "account", type: "address", internalType: "address" }],
+  },
+  { type: "error", name: "UUPSUnauthorizedCallContext", inputs: [] },
+  {
+    type: "error",
+    name: "UUPSUnsupportedProxiableUUID",
+    inputs: [{ name: "slot", type: "bytes32", internalType: "bytes32" }],
   },
 ] as const;

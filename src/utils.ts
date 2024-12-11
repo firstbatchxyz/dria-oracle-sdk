@@ -47,7 +47,6 @@ export async function contractBytesToStringWithStorage<K>(
   storage?: DecentralizedStorage<Buffer, K>
 ): Promise<string | null> {
   const inputStr: string = bytesToString(Buffer.from(input.slice(2), "hex"));
-
   if (storage) {
     // check if input is a key
     const key = storage.isKey(inputStr);

@@ -56,6 +56,10 @@ export interface TaskRequest {
   models: Hex;
 }
 
+/** A task generation response.
+ * @template O Output data type, defaults `Hex`.
+ * @template M Metadata type, defaults `Hex`.
+ */
 export interface TaskResponse<O = Hex, M = Hex> {
   /** Responding Oracle address. */
   responder: Address;
@@ -69,8 +73,10 @@ export interface TaskResponse<O = Hex, M = Hex> {
   metadata: M;
 }
 
-/** A task validation for a response. */
-export interface TaskValidation {
+/** A task validation for a response.
+ * @template M Metadata type, defaults `Hex`.
+ */
+export interface TaskValidation<M = Hex> {
   /** Responding validator address. */
   validator: Address;
   /** Proof-of-Work nonce for SHA3(taskId, input, requester, responder, nonce) < difficulty. */
@@ -78,5 +84,24 @@ export interface TaskValidation {
   /** Validation scores */
   scores: readonly bigint[];
   /** Optional metadata for this validation. */
-  metadata: Hex;
+  metadata: M;
 }
+
+/** A task validaiton score object.
+ *
+ * Within a task validation, we usually expect an array of these objects,
+ * one for each generation.
+ *
+ * The `final_score` here is the actual score considered by the contract,
+ * and `rationale` describes how the LLM decided that score.
+ *
+ * A score is expected to be a number between 1 and 5, inclusive; where 1 is worst and 5 is best.
+ */
+export type TaskValidationScores = {
+  helpfulness: number;
+  instruction_following: number;
+  truthfulness: number;
+  /** The final score given by the node. */
+  final_score: number;
+  rationale: string;
+};

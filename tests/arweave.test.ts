@@ -5,7 +5,6 @@ import { ArweaveStorageKey, ArweaveStorage } from "../src/storage/arweave";
 describe.only("arweave", () => {
   const data = Buffer.from('"Hello, Arweave!"');
 
-  let key: ArweaveStorageKey;
   let arweave: ArweaveStorage;
 
   beforeAll(async () => {
@@ -20,13 +19,13 @@ describe.only("arweave", () => {
     expect(balance).toBeGreaterThanOrEqual(0n);
   });
 
-  it("should upload data", async () => {
-    key = await arweave.put(data);
-  });
+  it("should upload & download plain string data", async () => {
+    const data = "Hello, Arweave!";
 
-  it("should download data", async () => {
+    const key = await arweave.put(Buffer.from(data));
     const fetched = await arweave.get(key);
-    expect(fetched).toEqual(data);
+    expect(fetched).not.toBeNull();
+    expect(fetched!.toString()).toEqual(data);
   });
 
   it("should return null for non-existent data", async () => {
@@ -38,5 +37,18 @@ describe.only("arweave", () => {
     const key = { arweave: "jJbabD9VNDIaPTlWaCUZbdlFgbTvL1uY-4605ryuGKg" };
     const fetched = await arweave.get(key);
     expect(fetched).toEqual(data);
+  });
+
+  it("should upload & download JSON data", async () => {
+    const data = {
+      foo: "bar",
+      age: 18,
+      human: false,
+    };
+
+    const key = await arweave.put(Buffer.from(JSON.stringify(data)));
+    const fetched = await arweave.get(key);
+    expect(fetched).not.toBeNull();
+    expect(JSON.parse(fetched!.toString())).toEqual(data);
   });
 });

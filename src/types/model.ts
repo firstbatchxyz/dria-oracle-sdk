@@ -84,4 +84,4 @@ export type Models = (typeof Models)[number];
  * - `*` for any model randomly (of the responder).
  * - `!` for the first model (of the responder).
  */
-export type RequestModels = (typeof Models)[number][] | "*" | "!";
+export type RequestModels = Models[] | "*" | "!";
