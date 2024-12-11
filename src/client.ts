@@ -97,8 +97,11 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
     return this;
   }
 
-  /** Returns a new instance of the LLM coordinator contract. */
-  Coordinator(address: Address) {
+  /** Returns a new instance of the LLM coordinator contract.
+   * @warning This is an internal method, and making it `private` will break
+   * the type export due to the size of ABI-inferred types.
+   */
+  private Coordinator(address: Address) {
     return getContract({
       address,
       abi: coordinatorAbi,
@@ -109,8 +112,11 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
     });
   }
 
-  /** Returns a new instance of an ERC20 token contract. */
-  Token(address: Address) {
+  /** Returns a new instance of an ERC20 token contract.
+   * @warning This is an internal method, and making it `private` will break
+   * the type export due to the size of ABI-inferred types.
+   */
+  private Token(address: Address) {
     return getContract({
       address,
       abi: erc20Abi,

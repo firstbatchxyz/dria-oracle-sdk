@@ -10,14 +10,14 @@ describe.only("oracle", () => {
   let requestTxHash: Hex;
 
   beforeAll(async () => {
-    const PRIVATE_KEY =
-      (process.env.PRIVATE_KEY! as Hex) ?? "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"; // anvil #0
+    const SECRET_KEY =
+      (process.env.SECRET_KEY! as Hex) ?? "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"; // anvil #0
     const RPC_URL = process.env.RPC_URL ?? "https://base-sepolia-rpc.publicnode.com"; // public URL
     const COORDINATOR_ADDRESS =
       (process.env.COORDINATOR_ADDRESS as Address) ?? "0x362fDBB20191ba22d53bF3b09646AA387Cd6dF75";
 
     const walletClient = createWalletClient({
-      account: privateKeyToAccount(PRIVATE_KEY),
+      account: privateKeyToAccount(SECRET_KEY),
       chain: baseSepolia,
       transport: http(RPC_URL),
     });

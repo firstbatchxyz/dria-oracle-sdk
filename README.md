@@ -40,7 +40,7 @@ Dria Oracle uses [Viem](https://viem.sh/) to connect with blockchains. It takes 
 ```ts
 // wallet client for "write" operations
 const walletClient = createWalletClient({
-  account: privateKeyToAccount(PRIVATE_KEY),
+  account: privateKeyToAccount(SECRET_KEY),
   transport: http(RPC_URL),
   chain,
 });
