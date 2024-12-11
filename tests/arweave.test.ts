@@ -1,19 +1,17 @@
 import { readFileSync } from "fs";
-import { ArweaveStorage } from "../src/data/arweave";
+import { ArweaveStorageKey, ArweaveStorage } from "../src/storage/arweave";
 
 // skip this unless you want to test explicitly
 describe.only("arweave", () => {
-  // example at: https://gateway.irys.xyz/jJbabD9VNDIaPTlWaCUZbdlFgbTvL1uY-4605ryuGKg
-  // encoded hex key is: 8c96da6c3f5534321a3d39566825196dd94581b4ef2f5b98fb8eb4e6bcae18a8
-  const data = "Hello, Arweave!";
+  const data = Buffer.from('"Hello, Arweave!"');
 
-  let key: string;
-  let arweave: ArweaveStorage<string>;
+  let arweave: ArweaveStorage;
 
   beforeAll(async () => {
     const walletPath = "./tests/secrets/testing.json";
     const wallet = JSON.parse(readFileSync(walletPath, "utf-8"));
-    arweave = new ArweaveStorage(wallet, 0);
+    arweave = new ArweaveStorage();
+    arweave.init(wallet, 0);
   });
 
   it("should get balance", async () => {
@@ -21,29 +19,36 @@ describe.only("arweave", () => {
     expect(balance).toBeGreaterThanOrEqual(0n);
   });
 
-  it("should upload data", async () => {
-    key = await arweave.put(data);
-  });
+  it("should upload & download plain string data", async () => {
+    const data = "Hello, Arweave!";
 
-  it("should download data", async () => {
+    const key = await arweave.put(Buffer.from(data));
     const fetched = await arweave.get(key);
-    expect(fetched).toEqual(data);
-  });
-
-  it("should throw for bad key", async () => {
-    const badKey = "d-_-b";
-    await expect(arweave.get(badKey)).rejects.toThrow();
+    expect(fetched).not.toBeNull();
+    expect(fetched!.toString()).toEqual(data);
   });
 
   it("should return null for non-existent data", async () => {
-    const key = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    const key = { arweave: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" };
     expect(await arweave.get(key)).toEqual(null);
   });
 
   it("should download existing data", async () => {
-    // example at: https://gateway.irys.xyz/jJbabD9VNDIaPTlWaCUZbdlFgbTvL1uY-4605ryuGKg
-    const key = "8c96da6c3f5534321a3d39566825196dd94581b4ef2f5b98fb8eb4e6bcae18a8";
+    const key = { arweave: "jJbabD9VNDIaPTlWaCUZbdlFgbTvL1uY-4605ryuGKg" };
     const fetched = await arweave.get(key);
     expect(fetched).toEqual(data);
+  });
+
+  it("should upload & download JSON data", async () => {
+    const data = {
+      foo: "bar",
+      age: 18,
+      human: false,
+    };
+
+    const key = await arweave.put(Buffer.from(JSON.stringify(data)));
+    const fetched = await arweave.get(key);
+    expect(fetched).not.toBeNull();
+    expect(JSON.parse(fetched!.toString())).toEqual(data);
   });
 });

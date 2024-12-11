@@ -1,5 +1,8 @@
-export { Oracle, type RequestModels } from "./oracle/";
+export { Oracle } from "./client";
+export type { RequestModels } from "./types";
 
-// storage types
-export type { Storage } from "./data/";
-export { ArweaveStorage } from "./data/arweave";
+// storage
+export type { DecentralizedStorage as Storage } from "./storage";
+export { ArweaveStorage, type JWKInterface } from "./storage/arweave";
+
+export { contractBytesToStringWithStorage, stringToContractBytesWithStorage } from "./utils";

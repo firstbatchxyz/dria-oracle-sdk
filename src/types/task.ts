@@ -56,6 +56,10 @@ export interface TaskRequest {
   models: Hex;
 }
 
+/** A task generation response.
+ * @template O Output data type, defaults `Hex`.
+ * @template M Metadata type, defaults `Hex`.
+ */
 export interface TaskResponse<O = Hex, M = Hex> {
   /** Responding Oracle address. */
   responder: Address;
@@ -69,8 +73,10 @@ export interface TaskResponse<O = Hex, M = Hex> {
   metadata: M;
 }
 
-/** A task validation for a response. */
-export interface TaskValidation {
+/** A task validation for a response.
+ * @template M Metadata type, defaults `Hex`.
+ */
+export interface TaskValidation<M = Hex> {
   /** Responding validator address. */
   validator: Address;
   /** Proof-of-Work nonce for SHA3(taskId, input, requester, responder, nonce) < difficulty. */
@@ -78,83 +84,24 @@ export interface TaskValidation {
   /** Validation scores */
   scores: readonly bigint[];
   /** Optional metadata for this validation. */
-  metadata: Hex;
+  metadata: M;
 }
 
-/** Allowed models for type-safety. */
-const Models = [
-  "finalend/hermes-3-llama-3.1:8b-q8_0",
-
-  "phi3:14b-medium-4k-instruct-q4_1",
-  "phi3:14b-medium-128k-instruct-q4_1",
-
-  "phi3.5:3.8b",
-  "phi3.5:3.8b-mini-instruct-fp16",
-
-  "gemma2:9b-instruct-q8_0",
-  "gemma2:9b-instruct-fp16",
-
-  "llama3.1:latest",
-  "llama3.1:8b-instruct-q8_0",
-  "llama3.1:8b-instruct-fp16",
-  "llama3.1:70b-instruct-q4_0",
-  "llama3.1:70b-instruct-q8_0",
-  "llama3.2:1b",
-  "llama3.2:3b",
-
-  "qwen2.5:7b-instruct-q5_0",
-  "qwen2.5:7b-instruct-fp16",
-  "qwen2.5:32b-instruct-fp16",
-  "qwen2.5-coder:1.5b",
-  "qwen2.5-coder:7b-instruct",
-  "qwen2.5-coder:7b-instruct-q8_0",
-  "qwen2.5-coder:7b-instruct-fp16",
-
-  "deepseek-coder:6.7b",
-
-  "mixtral:8x7b",
-  "gpt-4-turbo",
-  "gpt-4o",
-  "gpt-4o-mini",
-
-  "o1-mini",
-  "o1-preview",
-
-  "gemini-1.0-pro",
-
-  "gemini-1.5-pro",
-  "gemini-1.5-pro-exp-0827",
-  "gemini-1.5-flash",
-
-  "gemma-2-2b-it",
-  "gemma-2-9b-it",
-  "gemma-2-27b-it",
-] as const;
-
-export type Models = (typeof Models)[number];
-
-/**
- * Allowed request models.
+/** A task validaiton score object.
  *
- * - An array of `Models` strings.
- * - `*` for any model randomly (of the responder).
- * - `!` for the first model (of the responder).
+ * Within a task validation, we usually expect an array of these objects,
+ * one for each generation.
+ *
+ * The `final_score` here is the actual score considered by the contract,
+ * and `rationale` describes how the LLM decided that score.
+ *
+ * A score is expected to be a number between 1 and 5, inclusive; where 1 is worst and 5 is best.
  */
-export type RequestModels = (typeof Models)[number][] | "*" | "!";
-
-/** A chat history entry. */
-export type ChatHistoryResponse = {
-  /** Role, usually `user`, `assistant` or `system`. */
-  role: string;
-  /** Message content. */
-  content: string;
-};
-
-/** A request with chat history. */
-export type ChatHistoryRequest = {
-  // FIXME: rename to `historyId` when Oracle is updated to handle them
-  /** Task Id of which the output will act like history. */
-  history_id: number | bigint;
-  /** Message content. */
-  content: string;
+export type TaskValidationScores = {
+  helpfulness: number;
+  instruction_following: number;
+  truthfulness: number;
+  /** The final score given by the node. */
+  final_score: number;
+  rationale: string;
 };

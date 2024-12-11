@@ -35,15 +35,16 @@ pnpm add dria-oracle-sdk
 
 ## Usage
 
-Dria Oracle uses [viem](https://viem.sh/), and takes in Viem clients as input:
+Dria Oracle uses [Viem](https://viem.sh/) to connect with blockchains. It takes in two Viem clients as input:
 
 ```ts
+// wallet client for "write" operations
 const walletClient = createWalletClient({
   account: privateKeyToAccount(PRIVATE_KEY),
   transport: http(RPC_URL),
   chain,
 });
-
+// public client for "read" operations
 const publicClient = createPublicClient({
   transport: http(RPC_URL),
   chain,
@@ -67,8 +68,9 @@ You can check the allowance, and approve tokens if you want with the following c
 ```ts
 const allowance = await oracle.allowance();
 if (allowance === 0n) {
-  // you can omit `someAmount` as well, in which case it will approve infinitely
-  const txHash = await oracle.approve(someAmount);
+  const amount = parseEther("1.0");
+  // you can omit `amonut` as well to make an infinite approval
+  const txHash = await oracle.approve(amount);
   console.log({ txHash });
 }
 ```
@@ -94,8 +96,8 @@ await oracle.wait(taskId);
 When we return from `wait` without any errors, we can be sure that the task is finished. We can read the results with:
 
 ```ts
-const result = await oracle.read(taskId);
-const { output, metadata } = result;
+const response = await oracle.read(taskId);
+const { output, metadata } = response;
 ```
 
 ## Testing
@@ -105,6 +107,15 @@ Tests use the live environment, so make sure you have some balance in your walle
 ```sh
 pnpm test
 ```
+
+## Contracts
+
+### Base Sepolia Testnet
+
+| Contract    | Address                                                                                                                                |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Registry    | [`0xbff452f736c0a2c0122b6d629c4d996274703d3b`](https://base-sepolia.blockscout.com/address/0xbff452f736c0a2c0122b6d629c4d996274703d3b) |
+| Coordinator | [`0x1deaca041f094ec67baa4fb36d333cb652e6b7a7`](https://base-sepolia.blockscout.com/address/0x1deaca041f094ec67baa4fb36d333cb652e6b7a7) |
 
 ## License
 
