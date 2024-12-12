@@ -3,7 +3,7 @@ import "dotenv/config";
 import { createPublicClient, createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { baseSepolia } from "viem/chains";
-import { Oracle } from "dria-oracle-sdk";
+import { Oracle, ArweaveStorage } from "dria-oracle-sdk";
 
 async function main() {
   const SECRET_KEY = process.env.SECRET_KEY;
@@ -11,17 +11,20 @@ async function main() {
   const COORDINATOR_ADDRESS = process.env.COORDINATOR_ADDRESS ?? "0x1deaca041f094ec67baa4fb36d333cb652e6b7a7";
 
   // create oracle instance
-  const oracle = new Oracle({
-    public: createPublicClient({
-      chain: baseSepolia,
-      transport: http(RPC_URL),
-    }),
-    wallet: createWalletClient({
-      account: privateKeyToAccount(SECRET_KEY),
-      chain: baseSepolia,
-      transport: http(RPC_URL),
-    }),
-  });
+  const oracle = new Oracle(
+    {
+      public: createPublicClient({
+        chain: baseSepolia,
+        transport: http(RPC_URL),
+      }),
+      wallet: createWalletClient({
+        account: privateKeyToAccount(SECRET_KEY),
+        chain: baseSepolia,
+        transport: http(RPC_URL),
+      }),
+    },
+    new ArweaveStorage()
+  );
 
   await oracle.init(COORDINATOR_ADDRESS);
 
@@ -35,20 +38,27 @@ async function main() {
   }
 
   // make a request
-  const input = "What is the result of 2+2?";
+  const input = process.argv[2];
+  if (!input) {
+    throw new Error("Provide an input.");
+  }
   const model = "*";
-  const requestTxHash = await oracle.request(input, model, {
+  const requestObj = await oracle.request(input, model, {
     taskParameters: {
       numValidations: 2,
       numGenerations: 2,
     },
   });
-  const taskId = await oracle.waitRequest(requestTxHash);
+
+  console.log("Making a request:", requestObj);
+  const taskId = await oracle.waitRequest(requestObj.txHash);
 
   // wait for the result
+  console.log(`Waiting for completions on task: ${taskId}`);
   await oracle.wait(taskId);
 
   // read best result
+  console.log("Reading results:");
   const response = await oracle.read(taskId);
   console.log("Response:");
   console.log({ response });

@@ -104,6 +104,22 @@ TODO: describe parsing
 
 TODO: describe validations
 
+## Examples
+
+We have two examples under `examples` folder.
+
+You can make a request directly with the following command:
+
+```sh
+node ./examples/request.mjs <your-input-here>
+```
+
+Or, you can view the results of an existing task with:
+
+```sh
+node ./examples/view.mjs <task-id>
+```
+
 ## Testing
 
 Tests use the live environment, so make sure you have some balance in your wallets. To run them:
