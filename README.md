@@ -132,10 +132,10 @@ pnpm test
 
 ### Base Sepolia Testnet
 
-| Contract    | Address                                                                                                                                |
-| ----------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| Registry    | [`0xbff452f736c0a2c0122b6d629c4d996274703d3b`](https://base-sepolia.blockscout.com/address/0xbff452f736c0a2c0122b6d629c4d996274703d3b) |
-| Coordinator | [`0x1deaca041f094ec67baa4fb36d333cb652e6b7a7`](https://base-sepolia.blockscout.com/address/0x1deaca041f094ec67baa4fb36d333cb652e6b7a7) |
+| Contract    | Address                                                                                                                              |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Registry    | [`408d245a853137e44a2465d5c66061f97582eae9`](https://base-sepolia.blockscout.com/address/0x408d245a853137e44a2465d5c66061f97582eae9) |
+| Coordinator | [`13f977bde221b470d3ae055cde7e1f84debfe202`](https://base-sepolia.blockscout.com/address/0x13f977bde221b470d3ae055cde7e1f84debfe202) |
 
 ## License
 

@@ -164,8 +164,8 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
 
     // check task parameter
     const taskParameters = { ...this.taskParameters, ...opts.taskParameters };
-    if (taskParameters.numValidations !== 0 && taskParameters.numGenerations === 1) {
-      throw new Error("numGenerations must be greater than 1 when numValidations is not 0.");
+    if (taskParameters.numGenerations === 0) {
+      throw new Error("Number of generations cant be 0.");
     }
 
     // models are comma-separated

@@ -4,11 +4,12 @@ import { createPublicClient, createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { baseSepolia } from "viem/chains";
 import { Oracle, ArweaveStorage } from "dria-oracle-sdk";
+import { inspect } from "util";
 
 async function main() {
   const SECRET_KEY = process.env.SECRET_KEY;
   const RPC_URL = process.env.RPC_URL ?? "https://base-sepolia-rpc.publicnode.com";
-  const COORDINATOR_ADDRESS = process.env.COORDINATOR_ADDRESS ?? "0x1deaca041f094ec67baa4fb36d333cb652e6b7a7";
+  const COORDINATOR_ADDRESS = process.env.COORDINATOR_ADDRESS ?? "0x13f977bde221b470d3ae055cde7e1f84debfe202";
 
   // create oracle instance
   const oracle = new Oracle(
@@ -38,6 +39,7 @@ async function main() {
   }
 
   // make a request
+  console.log("Preparing request");
   const input = process.argv[2];
   if (!input) {
     throw new Error("Provide an input.");
@@ -45,8 +47,9 @@ async function main() {
   const model = "*";
   const requestObj = await oracle.request(input, model, {
     taskParameters: {
-      numValidations: 2,
+      difficulty: 2,
       numGenerations: 2,
+      numValidations: 1,
     },
   });
 
@@ -58,17 +61,22 @@ async function main() {
   await oracle.wait(taskId);
 
   // read best result
-  console.log("Reading results:");
   const response = await oracle.read(taskId);
-  console.log("Response:");
-  console.log({ response });
+  console.log("Reading best result:");
+  console.log(response);
 
   // read validations
-  const validations = await oracle.getValidations(taskId);
   console.log("Validations:");
+  const validations = await oracle.getValidations(taskId);
   for (const validationRaw of validations) {
     const validation = await oracle.processValidation(validationRaw);
-    console.log({ validation });
+    console.log(
+      inspect(validation, {
+        showHidden: true,
+        depth: null,
+        colors: true,
+      })
+    );
   }
 }
 
