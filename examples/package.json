@@ -1,10 +1,6 @@
 {
   "private": true,
   "type": "module",
-  "scripts": {
-    "request": "node ./request.mjs",
-    "view": "node ./view.mjs"
-  },
   "dependencies": {
     "dotenv": "^16.4.7",
     "dria-oracle-sdk": "^0.0.7",

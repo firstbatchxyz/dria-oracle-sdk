@@ -1,31 +1,19 @@
-import {
-  Account,
-  Chain,
-  erc20Abi,
-  getContract,
-  maxUint256,
-  parseAbi,
-  parseEventLogs,
-  PublicClient,
-  toHex,
-  Transport,
-  WalletClient,
-} from "viem";
-import type { Address, Hex, Prettify, WriteContractReturnType } from "viem";
+import { erc20Abi, getContract, maxUint256, parseAbi, parseEventLogs, toHex } from "viem";
+import type { Address, Hex, Prettify, Account, Chain, PublicClient, Transport, WalletClient } from "viem";
 import { DecentralizedStorage } from "./storage";
 import coordinatorAbi from "./abis/coordinator";
-import {
+import type {
   ChatHistoryRequest,
   ChatHistoryResponse,
-  RequestModels,
+  OracleModels,
   RequestOpts,
   RequestReturnType,
   TaskParameters,
   TaskResponse,
-  TaskStatus,
   TaskValidation,
   TaskValidationScores,
 } from "./types";
+import { TaskStatus } from "./types";
 import { contractBytesToStringWithStorage, stringToContractBytesWithStorage } from "./utils";
 
 /**
@@ -147,15 +135,15 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
    * @param opts optional request arguments, such as `protocol` and `taskParameters`
    * @returns task transaction hash
    */
-  async request(input: string, models: RequestModels, opts?: RequestOpts): Promise<RequestReturnType>;
+  async request(input: string, models: OracleModels, opts?: RequestOpts): Promise<RequestReturnType>;
   async request(
     input: Prettify<ChatHistoryRequest>,
-    models: RequestModels,
+    models: OracleModels,
     opts?: RequestOpts
   ): Promise<RequestReturnType>;
   async request(
     input: string | Prettify<ChatHistoryRequest>,
-    models: RequestModels = "*",
+    models: OracleModels = "*",
     opts: RequestOpts = {}
   ): Promise<RequestReturnType> {
     if (this.coordinator === undefined) {
@@ -180,7 +168,7 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
     }
 
     const inputBytes = await stringToContractBytesWithStorage(input, this.storage);
-    const modelBytes = await stringToContractBytesWithStorage(modelsString, this.storage);
+    const modelBytes = await stringToContractBytesWithStorage(modelsString, undefined); // we dont use arweave for models
 
     const protocol = opts.protocol ?? this.protocol;
     const protocolBytes = toHex(protocol, { size: 32 }); // bytes32 type

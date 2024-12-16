@@ -78,10 +78,12 @@ const Models = [
 export type Models = (typeof Models)[number];
 
 /**
- * Allowed request models.
+ * Allowed Oracle models.
  *
- * - An array of `Models` strings.
+ * The requested model(s) can be any of the following:
+ *
+ * - An array of models, such as `["gemini-1.5-pro", "gpt-4o-mini"]`.
  * - `*` for any model randomly (of the responder).
  * - `!` for the first model (of the responder).
  */
-export type RequestModels = Models[] | "*" | "!";
+export type OracleModels = Models[] | "*" | "!";

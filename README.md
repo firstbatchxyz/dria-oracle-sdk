@@ -35,7 +35,9 @@ pnpm add dria-oracle-sdk
 
 ## Usage
 
-Dria Oracle uses [Viem](https://viem.sh/) to connect with blockchains. It takes in two Viem clients as input:
+### Setup
+
+We use [Viem](https://viem.sh/) to connect with blockchains. Provide the two Viem clients as input:
 
 ```ts
 // wallet client for "write" operations
@@ -50,63 +52,108 @@ const publicClient = createPublicClient({
   chain,
 });
 
-const oracle = new Oracle({
-  public: publicClient,
-  wallet: walletClient,
-});
+// arweave storage
+const storage = new ArweaveStorage();
+
+// create the oracle sdk
+const oracle = new Oracle(
+  {
+    public: publicClient,
+    wallet: walletClient,
+  },
+  storage
+);
 ```
 
-It must then be initialized with the coordinator contract address, which will setup contract instances in the background:
+Then, initialize the SDK by connecting to the Coordinator contract at the given address:
 
 ```ts
 await oracle.init(coordinatorAddress);
 ```
 
-That's all! We must also make sure that we have enough allowance to the coordinator contract so that it can pay the oracle fees.
-You can check the allowance, and approve tokens if you want with the following code:
+### Using Arweave
+
+As you may have noticed, we have written `const storage = new ArweaveStorage();` above. This is because we save from gas costs by writing large strings to Arweave and storing its transaction id instead of the string itself within the contract. In a contract, if we see a stringified object such as `{ arweave: "tx-id-here"}` then this belongs to an Arweave transaction.
+
+Oracle nodes can understand this, and read the actual content from Arweave. Even further, they can write their results to Arweave the same way, from which the SDK understands and downloads the output!
+In short, there are two types of operations:
+
+- **Read**: It is enough to pass in the `ArweaveStorage` instance as shown above to the `Oracle` constructor.
+
+```ts
+const storage = new ArweaveStorage();
+```
+
+- **Write**: To be able to upload to Arweave as the SDK user, you must provide an Arweave Wallet (of type `JWKInterface`). The SDK tolerates to some byte-length, i.e. it will not use Arweave if the input is not large enough; this is configurable.
+
+```ts
+const storage = new ArweaveStorage();
+const wallet = JSON.parse(fs.readFileSync("./path/to/wallet.json", "utf-8")) as JWKInterface;
+const byteLimit = 2048; // default 1024
+storage.init(wallet, byteLimit);
+```
+
+If you omit Arweave by not passing this argument to the `Oracle` constructor, Arweave messages will not be downloaded automatically, nor large values will not be uploaded.
+
+### Making a Request
+
+Before we make a request, we must make sure that we have enough allowance to the coordinator contract so that it can pay the oracle fees.
+You can check the allowance, and approve tokens if required with the following snippet:
 
 ```ts
 const allowance = await oracle.allowance();
 if (allowance === 0n) {
+  // you can omit `amount` as well to make an infinite approval
   const amount = parseEther("1.0");
-  // you can omit `amonut` as well to make an infinite approval
   const txHash = await oracle.approve(amount);
   console.log({ txHash });
 }
 ```
 
-We are now ready to make a request:
+We are now ready to make a request. Within a request, we simply provide the input as-is, along with the models to be used:
 
 ```ts
-// submits the request transaction
-const txHash = await oracle.request("What is 2+2?", ["gpt-4o-mini"]);
+const input = "What is 2+2?";
+const models = ["gpt-4o-mini"]; // or just "*" for any model
+const txHash = await oracle.request(input, models);
+```
 
-// waits for transaction to be mined, returns taskId
+When this transaction is mined, a `taskid` will be assigned to it by the contract. A taskId start from 1 and simply increments for each request; however, we cant be sure of its value until our request is mined. For this reason, we follow our `request` with this function:
+
+```ts
 const taskId = await oracle.waitRequest(txHash);
 ```
 
-With the request made, we have to wait for a while for generator and validator oracles to finish their jobs. We can subscribe to a certain `taskId`
-and wait until it is completed with the `wait` function:
+With the request made & its task id known, we can sit back for a while and wait for the **generator** and **validator** oracles to finish their jobs. First, generator oracles will work to answer until the requested number of generations are met. After that, the validations will take place and each generation will take a score from each validator. Once the requested number of validations are met as well, the last validator computes the final scores & distributes fees accordingly.
+
+To wait for this programmatically, we can provide the task id and wait until all this is completed with the `wait` function:
 
 ```ts
-// waits for all generation & validations to be finished
 await oracle.wait(taskId);
 ```
 
-When we return from `wait` without any errors, we can be sure that the task is finished. We can read the results with:
+When we return from `wait` without any errors, we are sure that the request has been completed.
+
+### Reading Results
+
+To read the best (i.e. highest score) response to a request, we have the `read` function:
 
 ```ts
 const response = await oracle.read(taskId);
 const { output, metadata } = response;
 ```
 
+Internally, this handles t
+
 TODO: describe parsing
+
+### Reading Validations
 
 TODO: describe validations
 
 ## Examples
 
-We have two examples under `examples` folder.
+TODO: examples
 
 You can make a request directly with the following command:
 

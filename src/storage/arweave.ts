@@ -2,24 +2,38 @@ import Irys from "@irys/sdk";
 import { ArweaveIrys } from "@irys/sdk/node/flavours/arweave";
 import type { DecentralizedStorage } from ".";
 
-/** Re-export of the requested Wallet type. */
+/** Re-export of the Arweave wallet type.
+ *
+ * @example
+ * const path = "./wallet.json";
+ * const key = JSON.parse(fs.readFileSync(path, "utf-8")) as JWKInterface;
+ */
 export type JWKInterface = ConstructorParameters<typeof ArweaveIrys>[0]["key"];
 
-/**
- * An Arweave key is considered to be an object with `arweave` field.
- * See also: <https://github.com/firstbatchxyz/dria-oracle-node> storage.
- */
+/** An Arweave key is considered to be an object with `arweave` field. */
 export type ArweaveStorageKey = { arweave: string };
 
 /**
  * An Arweave wrapper for decentralized storage interface.
  *
- * This class uses the Irys SDK to interact with the Arweave network,
+ * It can be used to read Arweave values from the coordinator, as well as put Arweave-uploaded value to the coordinator.
+ *
+ * Note that for `write` operations, it uses Irys SDK to interact with the Arweave network,
  * for `put` and `balance` commands ,so it requires `@irys/sdk` peer dependency for those.
+ *
+ * @example
+ * // read only
+ * const storage = new ArweaveStorage();
+ *
+ * @example
+ * // read & write
+ * const storage = new ArweaveStorage();
+ * const key: JWInterface = JSON.parse(fs.readFileSync("./wallet.json", "utf-8"));
+ * storage.init(key);
  */
 export class ArweaveStorage implements DecentralizedStorage<Buffer, ArweaveStorageKey> {
   /** Byte threshold, beyond which data is uploaded to Arweave. */
-  public bytesLimit: number = 1024;
+  public bytesLimit: number = Number.MAX_SAFE_INTEGER; // very large by default
   /** Irys SDK instance. */
   public irys?: ArweaveIrys;
   /** Base URL of the gateway. */

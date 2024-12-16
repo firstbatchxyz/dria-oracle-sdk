@@ -1,4 +1,4 @@
-import type { RequestModels } from "./model";
+import type { OracleModels } from "./model";
 import type { TaskParameters } from "./task";
 
 /** A chat history entry. */
@@ -11,8 +11,7 @@ export type ChatHistoryResponse = {
 
 /** A request with chat history. */
 export type ChatHistoryRequest = {
-  // FIXME: rename to `historyId` when Oracle is updated to handle them
-  /** Task Id of which the output will act like history. */
+  /** Task id of which the output will act like history. */
   history_id: number | bigint;
   /** Message content. */
   content: string;
@@ -23,7 +22,7 @@ export type RequestReturnType = {
   txHash: `0x${string}`;
   protocol: string;
   input: string;
-  models: RequestModels;
+  models: OracleModels;
   taskParameters: { difficulty: number; numGenerations: number; numValidations: number };
 };
 

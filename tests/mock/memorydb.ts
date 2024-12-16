@@ -1,4 +1,4 @@
-import type { DecentralizedStorage } from ".";
+import type { DecentralizedStorage } from "../../src";
 import { randomBytes } from "crypto";
 
 /**

@@ -2,13 +2,23 @@ import { createPublicClient, createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { baseSepolia } from "viem/chains";
 import { Oracle, ArweaveStorage } from "dria-oracle-sdk";
+import { readFileSync } from "fs";
 
 /** Setup an oracle & initialize it using env variables. */
 export async function setupOracle() {
   const SECRET_KEY = process.env.SECRET_KEY;
   const RPC_URL = process.env.RPC_URL ?? "https://base-sepolia-rpc.publicnode.com";
   const COORDINATOR_ADDRESS = process.env.COORDINATOR_ADDRESS ?? "0x13f977bde221b470d3ae055cde7e1f84debfe202";
+  const ARWEAVE_WALLET_PATH = process.env.ARWEAVE_WALLET_PATH;
 
+  // initialize storage
+  const storage = new ArweaveStorage();
+  if (ARWEAVE_WALLET_PATH) {
+    console.log("Using Arweave wallet at:", ARWEAVE_WALLET_PATH);
+    storage.init(JSON.parse(readFileSync(ARWEAVE_WALLET_PATH, "utf-8")));
+  }
+
+  // create oracle client
   const oracle = new Oracle(
     {
       public: createPublicClient({
@@ -21,7 +31,7 @@ export async function setupOracle() {
         transport: http(RPC_URL),
       }),
     },
-    new ArweaveStorage()
+    storage
   );
 
   console.log("Initializing oracle for coordinator:", COORDINATOR_ADDRESS);
