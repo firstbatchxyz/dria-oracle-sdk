@@ -136,7 +136,7 @@ await oracle.wait(taskId);
 
 When we return from `wait` without any errors, we are sure that the request has been completed.
 
-### Reading Results
+### Reading the Best Response
 
 To read the best (i.e. highest score) response to a request, we have the `read` function:
 
@@ -145,13 +145,41 @@ const response = await oracle.read(taskId);
 const { output, metadata } = response;
 ```
 
-Internally, this handles t
+This function also handles downloading the actual values from Arweave, if the responder nodes have used it to save from gas. Note that you must have passed in the `ArweaveStorage` instance to the `Oracle` constructor for this to work.
 
-TODO: describe parsing
+### Reading All sResponses
+
+If you are interested in reading all generations, you can use:
+
+```ts
+const responses = await oracle.getResponses(taskId);
+```
+
+This returns you an array of raw responses. You can fetch the actual values from Arweave using the `processResponse` function:
+
+```ts
+for (const responseRaw of responses) {
+  const response = await oracle.processResponse(responseRaw);
+  // console.log ...
+}
+```
 
 ### Reading Validations
 
-TODO: describe validations
+If you are interested in reading all validations, you can use:
+
+```ts
+const validations = await oracle.getValidations(taskId);
+```
+
+This returns you an array of raw responses. You can fetch the actual values from Arweave using the `processResponse` function:
+
+```ts
+for (const validationRaw of validations) {
+  const validation = await oracle.processValidation(validationRaw);
+  // console.log ...
+}
+```
 
 ## Examples
 

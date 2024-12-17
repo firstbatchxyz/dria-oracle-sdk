@@ -44,7 +44,7 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
 
   // defaults
   public taskParameters: TaskParameters = { difficulty: 2, numGenerations: 2, numValidations: 2 };
-  public protocol = "oracle-js-sdk/0.1.0";
+  public protocol = "dria-oracle-sdk/0.x.x";
 
   constructor(
     readonly client: {
@@ -83,9 +83,24 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
 
   /**
    * Change the underlying default protocol.
+   *
+   * The protocol is a string that should fit a `bytes32` type in Solidity. It is used
+   * to identify the source of the request, and can be used within event filters.
+   *
+   * It should have to format `name/version`, e.g. `dria-oracle-sdk/0.x.x`.
    * @param protocol protocol name
    */
   withProtocol(protocol: string) {
+    // ensure `/` appears once
+    if (protocol.split("/").length !== 2) {
+      throw new Error("Invalid protocol format.");
+    }
+
+    // ensure it fits bytes32
+    if (Buffer.from(protocol).length > 32) {
+      throw new Error("Protocol string is too long.");
+    }
+
     this.protocol = protocol;
     return this;
   }
@@ -225,8 +240,7 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
    * @returns true if the task is completed, or `taskId` is 0
    */
   async isCompleted(taskId: bigint | number): Promise<boolean> {
-    // 0 is always accepted
-    // TODO: explain why
+    // 0 is always accepted; because `history_id: 0` may be used for chat messages
     if (BigInt(taskId) === 0n) {
       return true;
     }
@@ -252,9 +266,9 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
   }
 
   /**
-   * Reads the request of a task.
+   * Returns the validations of all generation responses for a task.
    * @param taskId task id
-   * @returns task validations
+   * @returns array of task validations
    */
   async getValidations(taskId: bigint | number): Promise<readonly Prettify<TaskValidation>[]> {
     if (this.coordinator === undefined) {
@@ -264,12 +278,11 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
   }
 
   /**
-   * Read the validations of a task.
+   * Returns the generation responses for a task.
    * @param taskId task id
-   * @param idx index of the response, if not provided, the best & completed response is returned
-   * @returns task response
+   * @returns array of task responses
    */
-  async readResponses(taskId: bigint | number): Promise<readonly Prettify<TaskResponse>[]> {
+  async getResponses(taskId: bigint | number): Promise<readonly Prettify<TaskResponse>[]> {
     if (this.coordinator === undefined) {
       throw new Error("SDK not initialized.");
     }
@@ -306,6 +319,7 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
     try {
       return {
         ...validation,
+        // here we assume the type like this, because validators are trusted
         metadata: JSON.parse(metadata) as TaskValidationScores[],
       };
     } catch (err) {
