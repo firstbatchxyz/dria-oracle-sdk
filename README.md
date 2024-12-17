@@ -95,7 +95,7 @@ storage.init(wallet, byteLimit);
 
 If you omit Arweave by not passing this argument to the `Oracle` constructor, Arweave messages will not be downloaded automatically, nor large values will not be uploaded.
 
-### Making a Request
+### Approving for Fees
 
 Before we make a request, we must make sure that we have enough allowance to the coordinator contract so that it can pay the oracle fees.
 You can check the allowance, and approve tokens if required with the following snippet:
@@ -109,6 +109,8 @@ if (allowance === 0n) {
   console.log({ txHash });
 }
 ```
+
+### Making a Request
 
 We are now ready to make a request. Within a request, we simply provide the input as-is, along with the models to be used:
 
@@ -153,18 +155,58 @@ TODO: describe validations
 
 ## Examples
 
-TODO: examples
+We have several examples that demonstrate making a request, following it up with another request, and view an existing request!
+You can examine the code there, or try them out yourself.
 
-You can make a request directly with the following command:
+First, go to [`examples`](./examples/) directory and install packages there:
 
 ```sh
-node ./examples/request.mjs <your-input-here>
+cd examples
+npm install
 ```
 
-Or, you can view the results of an existing task with:
+Prepare the environment by copying `.env.example` as `.env`, and fill out your `SECRET_KEY` and `RPC_URL`.
+The examples use Base Sepolia network, so make sure your RPC URL belongs to that network.
+
+> [!ALERT]
+>
+> Make sure you have enough ETH and WETH as well, to pay for the fees.
+
+### Making a Request
+
+Let's make a request now. Simply call `./request.mjs` with a single argument, that is your prompt.
 
 ```sh
-node ./examples/view.mjs <task-id>
+node ./request.mjs <your-input-here>
+# node ./request.mjs "What is 2+2?"
+# node ./request.mjs "Who created you?"
+# node ./request.mjs "Tell me a joke"
+```
+
+The script will print your request, and the best generation along with validations to the screen. It will also print the task id, which identifies
+your request for the coordinator contract.
+
+### Following up a Request
+
+Oracle's can "follow up" on an existing message, similar to how ChatGPT works with context! Check your task id from the previous example, and try to follow it
+up with another question using the `./chat.mjs` script:
+
+```sh
+node ./chat.mjs <your-input-here> <task-id-here>
+# node ./chat.mjs "how many words are there in my previous message?" 4
+# node ./chat.mjs "what are we talking about in our last conversation?" 123
+# node ./chat.mjs "what is the multiplication of the numbers in your previous messages" 1337
+```
+
+You can keep following up the chat messages on and on, as the oracle writes the entire history for each chat message!
+
+### Viewing a Request
+
+You can view the request, its generations and validations for any task id with the `./view.mjs` script:
+
+```sh
+node ./view.mjs <task-id>
+# node ./view.mjs 1
 ```
 
 ## Testing
