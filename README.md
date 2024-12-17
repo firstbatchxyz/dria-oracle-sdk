@@ -89,6 +89,7 @@ const storage = new ArweaveStorage();
 ```ts
 const storage = new ArweaveStorage();
 const wallet = JSON.parse(fs.readFileSync("./path/to/wallet.json", "utf-8")) as ArweaveWallet;
+
 const byteLimit = 2048; // default 1024
 storage.init(wallet, byteLimit);
 ```
@@ -136,6 +137,29 @@ await oracle.wait(taskId);
 
 When we return from `wait` without any errors, we are sure that the request has been completed.
 
+### Custom Task Parameters
+
+When calling `request`, you can provide optional parameters:
+
+- `protocol`: Protocol is a string that should fit `bytes32` of Solidity, which identifies your application. Can be omitted, defaults to SDK protocol.
+- `taskParameters`: An object that defines `difficulty`, `numGenerations` and `numValidations`.
+  - `difficulty` defines the proof-of-work difficulty for the oracles, increasing this exponentially rises the oracle fee.
+  - `numGenerations` is the number of generation you expect.
+  - `numValidations` is the number of validations you expect for each generation.
+
+Here is an example:
+
+```ts
+const txHash = await oracle.request(input, models, {
+  protocol: "my-app/0.1.0",
+  taskParameters: {
+    difficulty: 4,
+    numGenerations: 3,
+    numValidations: 2,
+  },
+});
+```
+
 ### Reading the Best Response
 
 To read the best (i.e. highest score) response to a request, we have the `read` function:
@@ -147,7 +171,7 @@ const { output, metadata } = response;
 
 This function also handles downloading the actual values from Arweave, if the responder nodes have used it to save from gas. Note that you must have passed in the `ArweaveStorage` instance to the `Oracle` constructor for this to work.
 
-### Reading All sResponses
+### Reading All Responses
 
 If you are interested in reading all generations, you can use:
 

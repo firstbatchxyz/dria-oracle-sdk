@@ -252,6 +252,15 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
     return requestRaw[3] === TaskStatus.Completed;
   }
 
+  // TODO: implement
+  // async getRequest(taskId: bigint | number) {
+  //   if (this.coordinator === undefined) {
+  //     throw new Error("SDK not initialized.");
+  //   }
+  //   const request = await this.coordinator.read.requests([BigInt(taskId)]);
+  //   return request;
+  // }
+
   /**
    * Returns the highest scored response of a task.
    * Will throw an error if the task is not completed yet!

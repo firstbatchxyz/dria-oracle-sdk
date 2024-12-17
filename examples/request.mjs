@@ -1,4 +1,4 @@
-// Usage: node example/index.mjs
+// Usage: node ./request.mjs
 import "dotenv/config";
 import { inspect } from "util";
 import { setupOracle, allowIfRequired } from "./common/index.mjs";

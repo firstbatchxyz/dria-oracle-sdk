@@ -1,4 +1,4 @@
-// Usage: node example/index.mjs
+// Usage: node ./view.mjs
 import "dotenv/config";
 import { inspect } from "util";
 import { setupOracle } from "./common/index.mjs";
@@ -25,15 +25,19 @@ async function main() {
 
   console.log("\nValidations:");
   const validations = await oracle.getValidations(taskId);
-  for (const validationRaw of validations) {
-    const validation = await oracle.processValidation(validationRaw);
-    console.log(
-      inspect(validation, {
-        showHidden: true,
-        depth: null,
-        colors: true,
-      })
-    );
+  if (!validations.length) {
+    console.log("No validations made.");
+  } else {
+    for (const validationRaw of validations) {
+      const validation = await oracle.processValidation(validationRaw);
+      console.log(
+        inspect(validation, {
+          showHidden: true,
+          depth: null,
+          colors: true,
+        })
+      );
+    }
   }
 
   console.log("\nBest Response:");
