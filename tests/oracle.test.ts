@@ -1,10 +1,11 @@
+import "dotenv/config";
 import { createPublicClient, createWalletClient, http, HttpTransport, isHex } from "viem";
 import type { Address, Hex } from "viem";
 import { Oracle } from "../src";
 import { privateKeyToAccount } from "viem/accounts";
 import { baseSepolia } from "viem/chains";
-import "dotenv/config";
 
+// this test uses the live network, not a fork!
 describe.only("oracle", () => {
   let oracle: Oracle<HttpTransport, typeof baseSepolia>;
   let requestTxHash: Hex;

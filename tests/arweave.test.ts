@@ -1,5 +1,5 @@
 import { readFileSync } from "fs";
-import { ArweaveStorageKey, ArweaveStorage } from "../src/storage/arweave";
+import { ArweaveStorage, ArweaveWallet } from "../src/storage/arweave";
 
 // skip this unless you want to test explicitly
 describe.only("arweave", () => {
@@ -9,7 +9,7 @@ describe.only("arweave", () => {
 
   beforeAll(async () => {
     const walletPath = "./tests/secrets/testing.json";
-    const wallet = JSON.parse(readFileSync(walletPath, "utf-8"));
+    const wallet = JSON.parse(readFileSync(walletPath, "utf-8")) as ArweaveWallet;
     arweave = new ArweaveStorage();
     arweave.init(wallet, 0);
   });

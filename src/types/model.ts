@@ -51,6 +51,7 @@ const Models = [
   "gemini-1.5-pro",
   "gemini-1.5-pro-exp-0827",
   "gemini-1.5-flash",
+  "gemini-2.0-flash-exp",
 
   "gemma-2-2b-it",
   "gemma-2-9b-it",
@@ -61,6 +62,7 @@ const Models = [
   "meta-llama/llama-3.1-70b-instruct",
   "meta-llama/llama-3.1-405b-instruct",
   "meta-llama/llama-3.1-70b-instruct:free",
+  "meta-llama/llama-3.3-70b-instruct",
 
   "anthropic/claude-3.5-sonnet:beta",
   "anthropic/claude-3-5-haiku-20241022:beta",

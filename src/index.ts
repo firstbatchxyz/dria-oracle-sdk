@@ -4,7 +4,7 @@ export type { OracleModels } from "./types";
 
 // storage
 export type { DecentralizedStorage } from "./storage";
-export { ArweaveStorage, type JWKInterface } from "./storage/arweave";
+export { ArweaveStorage, type ArweaveWallet } from "./storage/arweave";
 
 // utilities
 export { contractBytesToStringWithStorage, stringToContractBytesWithStorage } from "./utils";

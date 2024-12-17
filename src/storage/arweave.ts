@@ -2,13 +2,13 @@ import Irys from "@irys/sdk";
 import { ArweaveIrys } from "@irys/sdk/node/flavours/arweave";
 import type { DecentralizedStorage } from ".";
 
-/** Re-export of the Arweave wallet type.
+/** Re-export of the `JWKInterface` type, which represents an Arweave wallet.
  *
  * @example
  * const path = "./wallet.json";
- * const key = JSON.parse(fs.readFileSync(path, "utf-8")) as JWKInterface;
+ * const key = JSON.parse(fs.readFileSync(path, "utf-8")) as ArweaveWallet;
  */
-export type JWKInterface = ConstructorParameters<typeof ArweaveIrys>[0]["key"];
+export type ArweaveWallet = ConstructorParameters<typeof ArweaveIrys>[0]["key"];
 
 /** An Arweave key is considered to be an object with `arweave` field. */
 export type ArweaveStorageKey = { arweave: string };
@@ -44,7 +44,7 @@ export class ArweaveStorage implements DecentralizedStorage<Buffer, ArweaveStora
    * @param key Arweave wallet object.
    * @param bytesLimit Number of bytes such that smaller data are not uploaded, default is 1024 bytes.
    */
-  init(key: JWKInterface, bytesLimit: number = 1024) {
+  init(key: ArweaveWallet, bytesLimit: number = 1024) {
     const network = "mainnet";
     const token = "arweave";
 

@@ -1,7 +1,6 @@
 import { erc20Abi, getContract, maxUint256, parseAbi, parseEventLogs, toHex } from "viem";
 import type { Address, Hex, Prettify, Account, Chain, PublicClient, Transport, WalletClient } from "viem";
-import { DecentralizedStorage } from "./storage";
-import coordinatorAbi from "./abis/coordinator";
+import type { DecentralizedStorage } from "./storage";
 import type {
   ChatHistoryRequest,
   ChatHistoryResponse,
@@ -15,6 +14,7 @@ import type {
 } from "./types";
 import { TaskStatus } from "./types";
 import { contractBytesToStringWithStorage, stringToContractBytesWithStorage } from "./utils";
+import coordinatorAbi from "./abis/coordinator";
 
 /**
  * The Oracle client is used to interact with the Dria Oracles. It allows you to make requests, read responses, and process them.

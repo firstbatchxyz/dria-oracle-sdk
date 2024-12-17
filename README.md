@@ -84,11 +84,11 @@ In short, there are two types of operations:
 const storage = new ArweaveStorage();
 ```
 
-- **Write**: To be able to upload to Arweave as the SDK user, you must provide an Arweave Wallet (of type `JWKInterface`). The SDK tolerates to some byte-length, i.e. it will not use Arweave if the input is not large enough; this is configurable.
+- **Write**: To be able to upload to Arweave as the SDK user, you must provide an `ArweaveWallet` type object. The SDK tolerates to some byte-length, i.e. it will not use Arweave if the input is not large enough; this is configurable.
 
 ```ts
 const storage = new ArweaveStorage();
-const wallet = JSON.parse(fs.readFileSync("./path/to/wallet.json", "utf-8")) as JWKInterface;
+const wallet = JSON.parse(fs.readFileSync("./path/to/wallet.json", "utf-8")) as ArweaveWallet;
 const byteLimit = 2048; // default 1024
 storage.init(wallet, byteLimit);
 ```
