@@ -220,7 +220,7 @@ npm install
 Prepare the environment by copying `.env.example` as `.env`, and fill out your `SECRET_KEY` and `RPC_URL`.
 The examples use Base Sepolia network, so make sure your RPC URL belongs to that network.
 
-> [!ALERT]
+> [!WARNING]
 >
 > Make sure you have enough ETH and WETH as well, to pay for the fees.
 
