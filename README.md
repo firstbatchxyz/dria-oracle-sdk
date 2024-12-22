@@ -7,7 +7,7 @@
     Dria Oracle SDK
   </h1>
   <p align="center">
-    <i>On-chain LLMs SDK.</i>
+    <i>A decentralized, transparent, and permissionless framework for executing LLM tasks and AI applications.</i>
   </p>
 </p>
 
@@ -23,9 +23,18 @@
     </a>
 </p>
 
+- [x] **Transparency**: _Everything_ happens on-chain, if you don't see it on the block-explorer it didn't happen.
+- [x] **Ease of Use**: SDK has an intuitive interface to integrate LLMs into your application, be it AI-driven workflows or autonomous agents.
+- [x] **Decentralized & Permissionless**: _Anyone_ can run an [Oracle Node](https://github.com/firstbatchxyz/dria-oracle-node), including you!
+- [x] **Validations**: Validator nodes validate & give score to each result, ensuring high-quality generations.
+- [x] **Diverse LLM Support**: Oracles support 50+ LLMs, you can pick specific models for your request.
+- [x] **Multi-step Tasks**: Oracles can refer to previous tasks, and keep a conversation history on-chain.
+
+**See more [here](https://firstbatch.notion.site/dria-oracle-sdk)!**
+
 ## Installation
 
-Dria Oracle SDK is an NPM package, which can be installed with any of the following:
+Dria Oracle SDK is an [NPM package](https://www.npmjs.com/package/dria-oracle-sdk), which can be installed with any of the following:
 
 ```sh
 npm  i   dria-oracle-sdk
@@ -35,11 +44,21 @@ pnpm add dria-oracle-sdk
 
 ## Usage
 
+Using Oracle SDK, the following happens when you make a request:
+
+- The request is recorded on-chain & this event is picked up by Oracle nodes.
+- Oracles compete to respond with their results & solve a small hash-based proof-of-work.
+- Once the requested amount of generations are made, validator oracles give a score on each of them to assess their quality, while also doing proof-of-work themselves.
+- Once the requested amount of validations are made, you can read the highest-score generation from the contract.
+
 ### Setup
 
 We use [Viem](https://viem.sh/) to connect with blockchains. Provide the two Viem clients as input:
 
 ```ts
+import { Oracle, ArweaveStorage } from "dria-oracle-sdk";
+import { createPublicClient, createWalletClient, http } from "viem";
+
 // wallet client for "write" operations
 const walletClient = createWalletClient({
   account: privateKeyToAccount(SECRET_KEY),
@@ -73,8 +92,10 @@ await oracle.init(coordinatorAddress);
 
 ### Using Arweave
 
-As you may have noticed, we have written `const storage = new ArweaveStorage();` above. This is because we save from gas costs by writing large strings to Arweave and storing its transaction id instead of the string itself within the contract. In a contract, if we see a stringified object such as `{ arweave: "tx-id-here"}` then this belongs to an Arweave transaction.
+As you may have noticed, we have written `const storage = new ArweaveStorage();` above. This is because we save from gas costs by writing large strings to Arweave and storing its transaction id instead of the string itself within the contract.
+If you omit Arweave by not passing this argument to the `Oracle` constructor, Arweave messages will not be downloaded automatically, nor large values will not be uploaded.
 
+In a contract, if we see a stringified object such as `{ arweave: "tx-id-here"}` then this belongs to an Arweave transaction.
 Oracle nodes can understand this, and read the actual content from Arweave. Even further, they can write their results to Arweave the same way, from which the SDK understands and downloads the output!
 In short, there are two types of operations:
 
@@ -93,8 +114,6 @@ const wallet = JSON.parse(fs.readFileSync("./path/to/wallet.json", "utf-8")) as 
 const byteLimit = 2048; // default 1024
 storage.init(wallet, byteLimit);
 ```
-
-If you omit Arweave by not passing this argument to the `Oracle` constructor, Arweave messages will not be downloaded automatically, nor large values will not be uploaded.
 
 ### Approving for Fees
 
