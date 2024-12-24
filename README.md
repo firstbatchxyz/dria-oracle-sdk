@@ -290,6 +290,13 @@ pnpm test
 
 ## Contracts
 
+### Base Mainnet
+
+| Contract    | Address                                                                                                                      |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Registry    | [`7645eef691ad9dc0f29b6abfc73cca4c8be44051`](https://base.blockscout.com/address/0x7645eef691ad9dc0f29b6abfc73cca4c8be44051) |
+| Coordinator | [`17b6d1eddcd5f9ca19bb2ffed2f3deb6bd74bd20`](https://base.blockscout.com/address/0x17b6d1eddcd5f9ca19bb2ffed2f3deb6bd74bd20) |
+
 ### Base Sepolia Testnet
 
 | Contract    | Address                                                                                                                              |
