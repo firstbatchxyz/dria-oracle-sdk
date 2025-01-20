@@ -34,12 +34,14 @@ export interface TaskParameters {
 /**
  * A task request for LLM generation.
  * Fees are stored here as well in case fee changes occur within the duration of a task.
+ *
+ * Adapted from [`LLMOracleTask.sol`](https://github.com/firstbatchxyz/dria-oracle-contracts/blob/master/src/LLMOracleTask.sol#L34).
  */
 export interface TaskRequest {
   /** Requesting address, also responsible of the fee payment. */
   requester: Address;
   /** Protocol string, such as `dria/0.1.0`. */
-  protocol: Hex;
+  protocol: string;
   /** Task parameters, e.g. difficulty and number of generations & validations. */
   parameters: TaskParameters;
   /** Task status. */
@@ -51,9 +53,9 @@ export interface TaskRequest {
   /** Fee paid to the platform */
   platformFee: bigint;
   /** Input data for the task, usually a human-readable string. */
-  input: Hex;
+  input: string;
   /** Allowed model names for the task. */
-  models: Hex;
+  models: string;
 }
 
 /** A task generation response.

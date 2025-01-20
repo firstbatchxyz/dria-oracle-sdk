@@ -1,5 +1,4 @@
 {
-  "jestrunner.jestCommand": "node ../../node_modules/jest/bin/jest.js",
   // https://raw.githubusercontent.com/PKief/vscode-material-icon-theme/main/images/folderIcons.png
   "material-icon-theme.folders.associations": {
     "abis": "Mappings",

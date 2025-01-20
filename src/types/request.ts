@@ -1,5 +1,6 @@
+import type { Hex } from "viem";
 import type { OracleModels } from "./model";
-import type { TaskParameters } from "./task";
+import type { TaskParameters, TaskStatus } from "./task";
 
 /** A chat history entry. */
 export type ChatHistoryResponse = {
@@ -18,16 +19,16 @@ export type ChatHistoryRequest = {
 };
 
 /** Return type for `request` function. */
-export type RequestReturnType = {
-  txHash: `0x${string}`;
+export type NewRequestReturnType = {
+  txHash: Hex;
   protocol: string;
   input: string;
   models: OracleModels;
-  taskParameters: { difficulty: number; numGenerations: number; numValidations: number };
+  taskParameters: TaskParameters;
 };
 
 /** Optional arguments for `request`. */
-export type RequestOpts = {
+export type TaskRequestOptions = {
   taskParameters?: Partial<TaskParameters>;
   protocol?: string;
 };
