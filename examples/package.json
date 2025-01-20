@@ -3,7 +3,7 @@
   "type": "module",
   "dependencies": {
     "dotenv": "^16.4.7",
-    "dria-oracle-sdk": "^0.0.9",
+    "dria-oracle-sdk": "^0.0.10",
     "viem": "^2.21.54"
   }
 }

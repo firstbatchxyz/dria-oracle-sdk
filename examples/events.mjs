@@ -6,10 +6,10 @@ import { setupOracle } from "./common/index.mjs";
 async function main() {
   const oracle = await setupOracle();
 
-  const protocol = process.argv[2] ?? "swan-purchase-protocol/0.1.0";
+  const protocol = process.argv[2] ?? "swan-agent-state/0.1.0";
   console.log("Viewing events for protocol:", protocol);
 
-  const taskEvents = await oracle.getEvents({ protocol });
+  const taskEvents = await oracle.getEvents({ protocol, from: 20781080n });
   console.log(
     inspect(taskEvents, {
       showHidden: true,
