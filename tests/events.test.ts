@@ -8,7 +8,7 @@ describe("events", () => {
   let oracle: Oracle<HttpTransport, typeof baseMainnet>;
 
   beforeAll(async () => {
-    const RPC_URL = "https://base-mainnet.g.alchemy.com/v2/u58zA_m0RxRPgcfaBHK5-wFVcoZddu2d"; // "https://mainnet.base.org";
+    const RPC_URL = "https://mainnet.base.org";
     const SECRET_KEY = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"; // anvil #0
     const COORDINATOR_ADDRESS = "0x17b6d1eddcd5f9ca19bb2ffed2f3deb6bd74bd20";
 
