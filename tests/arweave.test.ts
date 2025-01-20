@@ -2,7 +2,7 @@ import { readFileSync } from "fs";
 import { ArweaveStorage, ArweaveWallet } from "../src/storage/arweave";
 
 // skip this unless you want to test explicitly
-describe.only("arweave", () => {
+describe.skip("arweave", () => {
   const data = Buffer.from('"Hello, Arweave!"');
 
   let arweave: ArweaveStorage;

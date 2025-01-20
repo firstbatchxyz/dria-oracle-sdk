@@ -1,6 +1,11 @@
 import { Hex, stringToBytes } from "viem";
 import { ArweaveStorage } from "../src";
-import { contractBytesToStringWithStorage, stringToContractBytesWithStorage } from "../src/utils";
+import {
+  bytes32ToString,
+  contractBytesToStringWithStorage,
+  stringToBytes32,
+  stringToContractBytesWithStorage,
+} from "../src/utils";
 
 describe("bytes", () => {
   it("should convert hex encodings", async () => {
@@ -23,5 +28,14 @@ describe("bytes", () => {
     const keyHex: Hex = `0x${Buffer.from(stringToBytes(key)).toString("hex")}`;
     const result = await contractBytesToStringWithStorage(keyHex, new ArweaveStorage());
     expect(result).toEqual('"Hello, Arweave!"');
+  });
+});
+
+describe("bytes32", () => {
+  it("should convert strings to bytes32 and back", async () => {
+    const strText = "Hello World";
+    const bytesText = "0x48656c6c6f20576f726c64000000000000000000000000000000000000000000";
+    expect(stringToBytes32(strText)).toEqual(bytesText);
+    expect(bytes32ToString(bytesText)).toEqual(strText);
   });
 });

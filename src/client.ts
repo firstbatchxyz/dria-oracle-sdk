@@ -1,19 +1,25 @@
 import { erc20Abi, getContract, maxUint256, parseAbi, parseEventLogs, toHex } from "viem";
-import type { Address, Hex, Prettify, Account, Chain, PublicClient, Transport, WalletClient } from "viem";
+import type { Address, Hex, Prettify, Account, Chain, PublicClient, Transport, WalletClient, BlockTag } from "viem";
 import type { DecentralizedStorage } from "./storage";
 import type {
   ChatHistoryRequest,
   ChatHistoryResponse,
   OracleModels,
-  RequestOpts,
-  RequestReturnType,
+  TaskRequestOptions,
+  NewRequestReturnType,
   TaskParameters,
   TaskResponse,
   TaskValidation,
   TaskValidationScores,
+  TaskRequest,
 } from "./types";
 import { TaskStatus } from "./types";
-import { contractBytesToStringWithStorage, stringToContractBytesWithStorage } from "./utils";
+import {
+  bytes32ToString,
+  contractBytesToStringWithStorage,
+  stringToBytes32,
+  stringToContractBytesWithStorage,
+} from "./utils";
 import coordinatorAbi from "./abis/coordinator";
 
 /**
@@ -52,7 +58,9 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
       wallet: WalletClient<T, C, Account>;
     },
     readonly storage?: DecentralizedStorage<Buffer, K>
-  ) {}
+  ) {
+    /* readonly args are fields */
+  }
 
   /**
    * Initialize the oracle client by setting up contract instances.
@@ -150,17 +158,17 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
    * @param opts optional request arguments, such as `protocol` and `taskParameters`
    * @returns task transaction hash
    */
-  async request(input: string, models: OracleModels, opts?: RequestOpts): Promise<RequestReturnType>;
+  async request(input: string, models: OracleModels, opts?: TaskRequestOptions): Promise<NewRequestReturnType>;
   async request(
     input: Prettify<ChatHistoryRequest>,
     models: OracleModels,
-    opts?: RequestOpts
-  ): Promise<RequestReturnType>;
+    opts?: TaskRequestOptions
+  ): Promise<NewRequestReturnType>;
   async request(
     input: string | Prettify<ChatHistoryRequest>,
     models: OracleModels = "*",
-    opts: RequestOpts = {}
-  ): Promise<RequestReturnType> {
+    opts: TaskRequestOptions = {}
+  ): Promise<NewRequestReturnType> {
     if (this.coordinator === undefined) {
       throw new Error("SDK not initialized.");
     }
@@ -186,7 +194,7 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
     const modelBytes = await stringToContractBytesWithStorage(modelsString, undefined); // we dont use arweave for models
 
     const protocol = opts.protocol ?? this.protocol;
-    const protocolBytes = toHex(protocol, { size: 32 }); // bytes32 type
+    const protocolBytes = stringToBytes32(protocol);
 
     // make the request
     const txHash = await this.coordinator.write.request([protocolBytes, inputBytes, modelBytes, taskParameters], {
@@ -194,13 +202,7 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
       account: this.client.wallet.account,
     });
 
-    return {
-      txHash,
-      protocol,
-      input,
-      models,
-      taskParameters,
-    };
+    return { txHash, protocol, input, models, taskParameters };
   }
 
   /**
@@ -208,7 +210,7 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
    * @param txHash transaction hash for the request (see `request`)
    * @returns taskId
    */
-  async waitRequest(txHash: Hex) {
+  async waitRequest(txHash: Hex): Promise<bigint> {
     const receipt = await this.client.public.waitForTransactionReceipt({ hash: txHash });
     const logs = parseEventLogs({
       abi: parseAbi(["event Request(uint256 indexed taskId, address indexed requester, bytes32 indexed protocol)"]),
@@ -252,14 +254,30 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
     return requestRaw[3] === TaskStatus.Completed;
   }
 
-  // TODO: implement
-  // async getRequest(taskId: bigint | number) {
-  //   if (this.coordinator === undefined) {
-  //     throw new Error("SDK not initialized.");
-  //   }
-  //   const request = await this.coordinator.read.requests([BigInt(taskId)]);
-  //   return request;
-  // }
+  /**
+   *
+   * @param taskId task id
+   * @returns test request
+   */
+  async getRequest(taskId: bigint | number): Promise<TaskRequest> {
+    if (this.coordinator === undefined) {
+      throw new Error("SDK not initialized.");
+    }
+
+    const request = await this.coordinator.read.requests([BigInt(taskId)]);
+
+    return {
+      requester: request[0],
+      protocol: bytes32ToString(request[1]),
+      parameters: request[2],
+      status: request[3],
+      generatorFee: request[4],
+      validatorFee: request[5],
+      platformFee: request[6],
+      input: (await contractBytesToStringWithStorage(request[7], this.storage)) ?? "",
+      models: bytes32ToString(request[8]),
+    };
+  }
 
   /**
    * Returns the highest scored response of a task.
@@ -337,9 +355,33 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
     }
   }
 
-  /** Shorthand to parse a string to a chat history response. */
-  toChatHistory(str: string): Prettify<ChatHistoryResponse>[] {
-    return JSON.parse(str);
+  /** Shorthand to parse a string input to a chat history response. */
+  toChatHistory(input: string): Prettify<ChatHistoryResponse>[] {
+    return JSON.parse(input);
+  }
+
+  /**
+   * Fetches the events from the coordinator contract.
+   *
+   * @param opts options for fetching tasks
+   * - `protocol`: protocol name
+   * - `from`: block to start from
+   * - `to`: block to end at
+   *
+   * @returns array of events, you can read the topic values for `i`th event with `events[i].args`
+   */
+  async getEvents(opts: { protocol?: string; from?: bigint | BlockTag; to?: bigint | BlockTag }) {
+    if (this.coordinator === undefined) {
+      throw new Error("SDK not initialized.");
+    }
+
+    // prepare parameters
+    const protocol = opts.protocol ? stringToBytes32(opts.protocol) : undefined;
+    const fromBlock = opts.from ?? "earliest";
+    const toBlock = opts.to ?? "latest";
+
+    const events = await this.coordinator!.getEvents.StatusUpdate({ protocol }, { fromBlock, toBlock });
+    return events;
   }
 
   /**

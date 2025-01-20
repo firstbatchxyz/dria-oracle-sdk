@@ -1,12 +1,13 @@
 import "dotenv/config";
 import { createPublicClient, createWalletClient, http, HttpTransport, isHex } from "viem";
 import type { Address, Hex } from "viem";
-import { Oracle } from "../src";
+import { ArweaveStorage, Oracle } from "../src";
 import { privateKeyToAccount } from "viem/accounts";
 import { baseSepolia } from "viem/chains";
+import { TaskStatus } from "../src/types";
 
-// this test uses the live network, not a fork!
-describe.only("oracle", () => {
+// this test uses the live testnet, NOT a forked local node!
+describe("oracle", () => {
   let oracle: Oracle<HttpTransport, typeof baseSepolia>;
   let requestTxHash: Hex;
 
@@ -27,12 +28,21 @@ describe.only("oracle", () => {
       transport: http(RPC_URL),
     });
 
-    oracle = new Oracle({
-      public: publicClient,
-      wallet: walletClient,
-    });
+    oracle = new Oracle(
+      {
+        public: publicClient,
+        wallet: walletClient,
+      },
+      new ArweaveStorage()
+    );
 
     await oracle.init(COORDINATOR_ADDRESS);
+  });
+
+  it("should get an existing request", async () => {
+    // querying an existing completed task request
+    const task = await oracle.getRequest(1);
+    expect(task.status).toEqual(TaskStatus.Completed);
   });
 
   it("should check approvals", async () => {

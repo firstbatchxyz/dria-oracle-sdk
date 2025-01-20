@@ -42,6 +42,12 @@ yarn add dria-oracle-sdk
 pnpm add dria-oracle-sdk
 ```
 
+The SDK makes use of Arweave as well for large inputs & outputs to save gas, and this depends on a peer dependency:
+
+```sh
+pnpm add @irys/sdk
+```
+
 ## Usage
 
 Using Oracle SDK, the following happens when you make a request:

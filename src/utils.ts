@@ -1,4 +1,4 @@
-import { bytesToString, type Hex, stringToBytes } from "viem";
+import { bytesToString, fromHex, type Hex, stringToBytes, toBytes, toHex } from "viem";
 import { DecentralizedStorage } from "./storage";
 
 /**
@@ -63,4 +63,22 @@ export async function contractBytesToStringWithStorage<K>(
   } else {
     return inputStr;
   }
+}
+
+/**
+ * Encodes a string into a `bytes32` compatible `Hex`.
+ * @param input a string
+ * @returns string encoded to `bytes32`
+ */
+export function stringToBytes32(input: string): Hex {
+  return toHex(input, { size: 32 });
+}
+
+/**
+ * Decodes a `bytes32` compatible `Hex` to a string.
+ * @param input `bytes32` compatible `Hex`
+ * @returns decoded string
+ */
+export function bytes32ToString(input: Hex): string {
+  return fromHex(input, { size: 32, to: "string" });
 }
