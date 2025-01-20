@@ -32,20 +32,3 @@ export type TaskRequestOptions = {
   taskParameters?: Partial<TaskParameters>;
   protocol?: string;
 };
-
-/**
- * A task request for LLM generation.
- *
- * Adapted from [`LLMOracleTask.sol`](https://github.com/firstbatchxyz/dria-oracle-contracts/blob/master/src/LLMOracleTask.sol#L34).
- */
-export type TaskRequest = {
-  requester: Hex;
-  protocol: string;
-  parameters: TaskParameters;
-  status: TaskStatus;
-  generatorFee: bigint;
-  validatorFee: bigint;
-  platformFee: bigint;
-  input: string;
-  models: string;
-};

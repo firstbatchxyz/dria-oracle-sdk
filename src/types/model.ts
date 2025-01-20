@@ -37,6 +37,11 @@ const Models = [
 
   "mixtral:8x7b",
 
+  "hf.co/unsloth/DeepSeek-R1-Distill-Qwen-1.5B-GGUF:Q5_K_M",
+  "hf.co/unsloth/DeepSeek-R1-Distill-Qwen-7B-GGUF:F16",
+  "hf.co/unsloth/DeepSeek-R1-Distill-Qwen-14B-GGUF:F16",
+  "hf.co/unsloth/DeepSeek-R1-Distill-Llama-70B-GGUF:Q4_K_M",
+
   /// OPENAI ///
   "gpt-4-turbo",
   "gpt-4o",
