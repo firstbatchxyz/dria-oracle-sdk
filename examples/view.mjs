@@ -10,6 +10,8 @@ async function main() {
   const taskId = BigInt(process.argv[2] ?? 1);
   console.log("Viewing task:", taskId);
 
+  // TODO: add request here
+
   console.log("\nGenerations:");
   const responses = await oracle.getResponses(taskId);
   for (const responseRaw of responses) {
