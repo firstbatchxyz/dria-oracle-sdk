@@ -9,7 +9,7 @@ async function main() {
   const protocol = process.argv[2] ?? "swan-agent-state/0.1.0";
   console.log("Viewing events for protocol:", protocol);
 
-  const taskEvents = await oracle.getEvents({ protocol, from: 20781080n });
+  const taskEvents = await oracle.getTaskEvents({ protocol, from: 20781080n });
   console.log(
     inspect(taskEvents, {
       showHidden: true,
