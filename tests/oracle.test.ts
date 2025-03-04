@@ -7,7 +7,7 @@ import { baseSepolia } from "viem/chains";
 import { TaskStatus } from "../src/types";
 
 // this test uses the live testnet, NOT a forked local node!
-describe("oracle", () => {
+describe.skip("oracle", () => {
   let oracle: Oracle<HttpTransport, typeof baseSepolia>;
   let requestTxHash: Hex;
 

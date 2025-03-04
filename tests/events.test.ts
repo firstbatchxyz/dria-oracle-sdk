@@ -36,11 +36,11 @@ describe("events", () => {
     const [from, to] = [24660077n, 24670077n]; // 10k blocks
 
     // there are 14 tasks specifically for the purchase requests
-    const purchaseTasks = await oracle.getEvents({ protocol: "swan-agent-purchase/0.1.0", from, to });
+    const purchaseTasks = await oracle.getTaskEvents({ protocol: "swan-agent-purchase/0.1.0", from, to });
     expect(purchaseTasks.length).toBe(2);
 
     // there are 84 tasks specifically for the state updates
-    const stateTasks = await oracle.getEvents({ protocol: "swan-agent-state/0.1.0", from, to });
+    const stateTasks = await oracle.getTaskEvents({ protocol: "swan-agent-state/0.1.0", from, to });
     expect(stateTasks.length).toBe(19);
   });
 });

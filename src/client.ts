@@ -4,7 +4,7 @@ import type { DecentralizedStorage } from "./storage";
 import type {
   ChatHistoryRequest,
   ChatHistoryResponse,
-  OracleModels,
+  Models,
   TaskRequestOptions,
   NewRequestReturnType,
   TaskParameters,
@@ -50,7 +50,7 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
 
   // defaults
   public taskParameters: TaskParameters = { difficulty: 2, numGenerations: 2, numValidations: 2 };
-  public protocol = "dria-oracle-sdk/0.x.x";
+  public protocol = "dria-oracle-sdk/0.0.x";
 
   constructor(
     readonly client: {
@@ -158,15 +158,15 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
    * @param opts optional request arguments, such as `protocol` and `taskParameters`
    * @returns task transaction hash
    */
-  async request(input: string, models: OracleModels, opts?: TaskRequestOptions): Promise<NewRequestReturnType>;
+  async request(input: string, models: Models, opts?: TaskRequestOptions): Promise<NewRequestReturnType>;
   async request(
     input: Prettify<ChatHistoryRequest>,
-    models: OracleModels,
+    models: Models,
     opts?: TaskRequestOptions
   ): Promise<NewRequestReturnType>;
   async request(
     input: string | Prettify<ChatHistoryRequest>,
-    models: OracleModels = "*",
+    models: Models = "*",
     opts: TaskRequestOptions = {}
   ): Promise<NewRequestReturnType> {
     if (this.coordinator === undefined) {
@@ -255,9 +255,9 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
   }
 
   /**
-   *
+   * Returns the task request for a given task id.
    * @param taskId task id
-   * @returns test request
+   * @returns task request
    */
   async getRequest(taskId: bigint | number): Promise<TaskRequest> {
     if (this.coordinator === undefined) {
@@ -361,16 +361,23 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
   }
 
   /**
-   * Fetches the events from the coordinator contract.
+   * Fetches the task events from the coordinator contract and returns its args.
+   * A returned task event has the taskId, protocol, statusBefore, and statusAfter.
+   * For a completed task, we are looking for the statusAfter to be `Completed` which is `3`.
    *
    * @param opts options for fetching tasks
    * - `protocol`: protocol name
    * - `from`: block to start from
    * - `to`: block to end at
-   *
-   * @returns array of events, you can read the topic values for `i`th event with `events[i].args`
+   * - `status`: task status to filter by
+   * @returns array of task events
    */
-  async getEvents(opts: { protocol?: string; from?: bigint | BlockTag; to?: bigint | BlockTag }) {
+  async getTaskEvents(opts: {
+    protocol?: string;
+    from?: bigint | BlockTag;
+    to?: bigint | BlockTag;
+    status?: TaskStatus;
+  }) {
     if (this.coordinator === undefined) {
       throw new Error("SDK not initialized.");
     }
@@ -381,7 +388,13 @@ export class Oracle<T extends Transport, C extends Chain, K = unknown> {
     const toBlock = opts.to ?? "latest";
 
     const events = await this.coordinator!.getEvents.StatusUpdate({ protocol }, { fromBlock, toBlock });
-    return events;
+    const taskEvents = events.map((event) => event.args);
+
+    if (opts.status) {
+      return taskEvents.filter((e) => e.statusAfter === opts.status);
+    } else {
+      return taskEvents;
+    }
   }
 
   /**

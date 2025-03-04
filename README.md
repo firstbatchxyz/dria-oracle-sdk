@@ -230,6 +230,19 @@ for (const validationRaw of validations) {
 }
 ```
 
+### Reading Task Events
+
+If you want to fetch `taskId`s for a given protocol, you can filter contract events with:
+
+```ts
+const events = await oracle.getTaskEvents({
+  protocol: stringToBytes32("my-protocol/0.1.0"),
+  status: TaskStatus.Completed,
+});
+```
+
+You can then use other functions with the returned `taskId`s.
+
 ## Examples
 
 We have several examples that demonstrate making a request, following it up with another request, and view an existing request!
@@ -312,4 +325,4 @@ pnpm test
 
 ## License
 
-We are using MIT license.
+We are using [MIT](./LICENSE) license.

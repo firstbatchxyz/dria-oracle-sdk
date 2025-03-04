@@ -1,6 +1,6 @@
 {
   "name": "dria-oracle-sdk",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "An on-chain LLM Oracle SDK for Dria",
   "license": "MIT",
   "author": "FirstBatch Team <dev@firstbatch.xyz>",
@@ -8,6 +8,13 @@
   "contributors": [
     "Erhan Tezcan <erhan@firstbatch.xyz> (https://github.com/erhant)"
   ],
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "start": "pnpm build && node dist/index.cjs",
+    "lint": "eslint '**/*.ts'",
+    "build": "pkgroll",
+    "test": "NODE_ENV=test jest "
+  },
   "files": [
     "dist/",
     "LICENSE",
@@ -45,13 +52,6 @@
   "peerDependencies": {
     "@irys/sdk": "^0.2.11"
   },
-  "scripts": {
-    "dev": "tsx src/index.ts",
-    "start": "pnpm build && node dist/index.cjs",
-    "lint": "eslint '**/*.ts'",
-    "build": "pkgroll",
-    "test": "NODE_ENV=test jest"
-  },
   "prettier": {
     "printWidth": 120
   },
@@ -63,5 +63,6 @@
     "arweave",
     "llm",
     "ai"
-  ]
+  ],
+  "packageManager": "pnpm@9.15.4+sha512.b2dc20e2fc72b3e18848459b37359a32064663e5627a51e4c74b2c29dd8e8e0491483c3abb40789cfd578bf362fb6ba8261b05f0387d76792ed6e23ea3b1b6a0"
 }

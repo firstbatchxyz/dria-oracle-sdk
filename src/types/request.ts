@@ -1,5 +1,5 @@
 import type { Hex } from "viem";
-import type { OracleModels } from "./model";
+import type { Models } from "./";
 import type { TaskParameters, TaskStatus } from "./task";
 
 /** A chat history entry. */
@@ -23,7 +23,7 @@ export type NewRequestReturnType = {
   txHash: Hex;
   protocol: string;
   input: string;
-  models: OracleModels;
+  models: Models;
   taskParameters: TaskParameters;
 };
 
